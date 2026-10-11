@@ -1,0 +1,4 @@
+E:\chem\Structure_Data\train\20260703_01\electrode_train_0001_phase_channels.npy
+E:\chem\Structure_Data\train\20260703_02\electrode_train_0001_phase_channels.npy
+E:\chem\Structure_Data\train\20260703_03\electrode_train_0002_phase_channels.npy
+E:\chem\Structure_Data\train\20260703_04\electrode_train_0003_phase_channels.npy

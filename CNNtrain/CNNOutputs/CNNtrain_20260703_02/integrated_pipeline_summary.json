@@ -1,0 +1,50 @@
+{
+  "dataset_root": "E:\\chem\\Structure_Data",
+  "train_root": "E:\\chem\\Structure_Data\\train",
+  "verify_root": "E:\\chem\\Structure_Data\\verify",
+  "test_root": "E:\\chem\\Structure_Data\\test",
+  "train_count": 3,
+  "verify_count": 3,
+  "test_count": 3,
+  "train_seed": 135275,
+  "verify_seed": 136275,
+  "test_seed": 137275,
+  "training_output_root": "E:\\chem\\CNNtrain\\CNNOutputs",
+  "pipeline_stage": "full",
+  "note": "The verify split is used as validation data in every epoch for early stopping and best-model selection. The test split is held out and evaluated after best-model rollback.",
+  "generation_elapsed_seconds": 110.51703340000131,
+  "current_train_structure_count": 4,
+  "current_verify_structure_count": 4,
+  "current_test_structure_count": 4,
+  "train_structure_factor_stats": {
+    "txt_count": 4,
+    "computed_count": 3,
+    "json_written_count": 3,
+    "xlsx_written_count": 0,
+    "skipped_existing_count": 1
+  },
+  "verify_structure_factor_stats": {
+    "txt_count": 4,
+    "computed_count": 3,
+    "json_written_count": 3,
+    "xlsx_written_count": 0,
+    "skipped_existing_count": 1
+  },
+  "test_structure_factor_stats": {
+    "txt_count": 4,
+    "computed_count": 3,
+    "json_written_count": 3,
+    "xlsx_written_count": 3,
+    "skipped_existing_count": 1
+  },
+  "structure_factor_elapsed_seconds": 24.343359799999234,
+  "training_elapsed_seconds": 6.156884400001218,
+  "training_run_dir": "E:\\chem\\CNNtrain\\CNNOutputs\\CNNtrain_20260703_02",
+  "checkpoint_path": "E:\\chem\\CNNtrain\\CNNOutputs\\CNNtrain_20260703_02\\structure_autoencoder_checkpoint.pt",
+  "tsne_elapsed_seconds": 5.494689400000425,
+  "tsne_output_dir": "E:\\chem\\CNNtrain\\CNNOutputs\\CNNtrain_20260703_02\\pipeline_test_tsne",
+  "pca_elapsed_seconds": 2.2186676999990596,
+  "pca_output_dir": "E:\\chem\\CNNtrain\\CNNOutputs\\CNNtrain_20260703_02\\pipeline_test_pca",
+  "total_elapsed_seconds": 148.73505719999957,
+  "dataset_root_mode": "shared_accumulating_train_verify_test"
+}

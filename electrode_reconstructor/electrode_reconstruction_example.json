@@ -1,0 +1,39 @@
+{
+  "domain_size_um": [20.0, 20.0, 20.0],
+  "voxel_size_um": 0.5,
+  "particle_volume_fraction": 0.4,
+  "cbd_volume_fraction": 0.1,
+  "electrolyte_volume_fraction": 0.5,
+  "allowed_overlap": 0.2,
+  "base_axes_um": [10.0, 6.0, 5.0],
+  "axis_definition": "diameter",
+  "size_distribution": {
+    "mode": "homogeneous",
+    "parameterization": "factor_space",
+    "mean": 1.0,
+    "sigma": 0.25
+  },
+  "orientation_distribution": {
+    "mode": "homogeneous",
+    "mean_deg": [0.0, 0.0, 0.0],
+    "std_deg": [10.0, 10.0, 10.0]
+  },
+  "cbd_growth": {
+    "morphology_parameter": 0.5,
+    "seed_fraction": 0.15,
+    "max_growth_steps": 500000
+  },
+  "fixed_angles_deg": [0.0, 0.0, 0.0],
+  "random_seed": null,
+  "max_placement_attempts": 100000,
+  "perturbation_fraction": 0.3,
+  "particle_pool_factor": 1.15,
+  "export_stl": true,
+  "export_step": false,
+  "export_ascii_stl": true,
+  "export_voxel_npy": false,
+  "export_particle_excel": true,
+  "export_structure_txt": true,
+  "export_summary_json": false,
+  "output_prefix": "electrode_case_01"
+}

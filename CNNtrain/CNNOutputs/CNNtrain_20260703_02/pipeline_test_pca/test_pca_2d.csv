@@ -1,0 +1,5 @@
+sample_index,file_name,file_path,pc1,pc2
+1,electrode_test_0001_phase_channels.npy,E:\chem\Structure_Data\test\20260703_01\electrode_test_0001_phase_channels.npy,-0.009111180901527405,-0.0004821585607714951
+2,electrode_test_0001_phase_channels.npy,E:\chem\Structure_Data\test\20260703_02\electrode_test_0001_phase_channels.npy,-0.009111183695495129,-0.00048215853166766465
+3,electrode_test_0002_phase_channels.npy,E:\chem\Structure_Data\test\20260703_03\electrode_test_0002_phase_channels.npy,0.00817360170185566,0.00985326711088419
+4,electrode_test_0003_phase_channels.npy,E:\chem\Structure_Data\test\20260703_04\electrode_test_0003_phase_channels.npy,0.010048755444586277,-0.00888893660157919

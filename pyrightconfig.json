@@ -1,0 +1,16 @@
+﻿{
+    "typeCheckingMode":  "basic",
+    "reportMissingModuleSource":  "none",
+    "executionEnvironments":  [
+                                  {
+                                      "extraPaths":  [
+                                                         "C:\\Users\\ShijieZhu\\anaconda3\\Lib\\site-packages",
+                                                         "D:\\Python_Code\\electrode_reconstructor",
+                                                         "D:\\Python_Code\\CNNtrain"
+                                                     ],
+                                      "root":  "."
+                                  }
+                              ],
+    "pythonVersion":  "3.13",
+    "reportMissingImports":  "none"
+}

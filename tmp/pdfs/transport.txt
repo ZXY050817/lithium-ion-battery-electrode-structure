@@ -1,0 +1,1951 @@
+
+
+===== PAGE 1 =====
+Large-Scale Statistical Learning for
+Mass Transport Prediction in Porous
+Materials Using 90,000 Arti ﬁcially
+Generated Microstructures
+Benedikt Pri ﬂing 1*†, Magnus Röding 2,3†, Philip Townsend 2,3, Matthias Neumann 1 and
+Volker Schmidt 1
+1Institute of Stochastics, Ulm University, Ulm, Germany, 2Agriculture and Food, Bioeconomy and Health, Research Institutes of
+Sweden, Gothenburg, Sweden, 3Department of Mathematical Sciences, Chalmers University of Technology and University of
+Gothenburg, Gothenburg, Sweden
+Effective properties of functional materials crucially depend on their 3D microstructure. In
+this paper, we investigate quantitative relationships between descriptors of two-phase
+microstructures, consisting of solid and pores and their mass transport properties. To that
+end, we generate a vast database comprising 90,000 microstructures drawn from nine
+different stochastic models, and compute their effective diffusivity and permeability as well
+as various microstructural descriptors. To the best of our knowledge, this is the largest and
+most diverse dataset created for studying the in ﬂuence of 3D microstructure on mass
+transport. In particular, we establish microstructure-property relationships using analytical
+prediction formulas, arti ﬁcial (fully-connected) neural networks, and convolutional neural
+networks. Again, to the best of our knowledge, this is the ﬁrst time that these three
+statistical learning approaches are quantitatively compared on the same dataset. The
+diversity of the dataset increases the generality of the determined relationships, and its size
+is vital for robust training of convolutional neural networks. We make the 3D
+microstructures, their structural descriptors and effective properties, as well as the
+code used to study the relationships between them available open access.
+Keywords: diffusivity, permeability, virtual materials testing, deep learning, porous materials, mass transport,
+structure-property relationship
+1 INTRODUCTION
+The performance of functional materials is signi ﬁcantly inﬂuenced by the underlying 3D structure
+and morphology (Torquato, 2002; Willot and Forest, 2018). Thus, optimizing 3D microstructures for
+high performance in particular applications is one of the main goals in many branches of materials
+research. Typically, the amount of candidate materials structures is enormous and beyond the reach
+of conventional experimental screening ( Dunn et al., 2020 ; Saunders et al., 2021 ) (for example, the
+number of potential pharmacologically active molecules is at least 10
+20 and theoretically estimated at
+1060)( Hoffmann and Gastreich, 2019 ). To overcome this limitation, virtual materials testing is an
+approach of increasing importance, where mathematical models are used for both the analysis of
+artiﬁcially generated materials structures, as well as for the investigation of their effective properties.
+By systematically varying the model parameters, a large number of virtual but realistic 3D
+microstructures can be drawn from stochastic models just at the cost of computer simulations.
+Edited by:
+Norbert Huber,
+Helmholtz-Zentrum Hereon, Germany
+Reviewed by:
+Yongxing Shen,
+Shanghai Jiao Tong University, China
+Wenxiang Xu,
+Hohai University, China
+*Correspondence:
+Benedikt Pri ﬂing
+benedikt.priﬂing@uni-ulm.de
+†These authors have contributed
+equally to this work
+Specialty section:
+This article was submitted to
+Computational Materials Science,
+a section of the journal
+Frontiers in Materials
+Received: 30 September 2021
+Accepted: 27 October 2021
+Published: 23 December 2021
+Citation:
+Priﬂing B, Röding M, Townsend P,
+Neumann M and Schmidt V (2021)
+Large-Scale Statistical Learning for
+Mass Transport Prediction in Porous
+Materials Using 90,000 Arti ﬁcially
+Generated Microstructures.
+Front. Mater. 8:786502.
+doi: 10.3389/fmats.2021.786502
+Frontiers in Materials | www.frontiersin.org December 2021 | Volume 8 | Article 7865021
+ORIGINAL RESEARCH
+published: 23 December 2021
+doi: 10.3389/fmats.2021.786502
+
+===== PAGE 2 =====
+These structures serve as geometry input for spatially-resolved
+numerical simulations of effective properties. In this way,
+together with the computation of various descriptors of the
+3D microstructures, quantitative microstructure-property
+relationships can be established.
+Typically, the mathematical models of random porous
+microstructures with two phases, solid and pores, are located
+in the (continuous) Euclidean space. If we restrict ourselves to
+discrete representations on a computational grid, say a cube of N
+3
+lattice points, the number of theoretically possible structures is
+2N3
+. Although many of those structures are not suitable to
+describe real materials, still a huge number of structural
+scenarios remains for which this is the case. In virtual
+materials testing, 3D microstructures are typically explored by
+means of parametric models that span some region of interest,
+using tools from mathematical morphology and stochastic
+geometry ( Lantuéjoul, 2002 ; Chiu et al., 2013 ; Jeulin, 2021 ).
+These microstructure models can be calibrated with
+experimental data gained, e.g., by tomographic imaging or
+simply be inspired by experimentally observed structures.
+There are numerous examples for arti ﬁcial generation and
+virtual testing of functional materials, including applications
+for lithium ion batteries ( Feinauer et al., 2015 ; Hein et al.,
+2016; Westhoff et al., 2018a ; Priﬂing et al., 2019 ; Hein et al.,
+2020; Allen et al., 2021; Priﬂing et al., 2021a; Birkholz et al., 2021;
+Furat et al., 2021 ), solid oxide fuel cells ( Abdallah et al., 2016 ;
+Neumann et al., 2016 ; Moussaoui et al., 2018 ), amorphous silica
+(Priﬂing et al., 2021b ), gas diffusion electrodes ( Neumann et al.,
+2019a), open-cell foams ( Westhoff et al., 2018b ), organic
+semiconductors ( Westhoff et al., 2015 ), mesoporous alumina
+(Wang et al., 2015 ), solar cells ( Stenzel et al., 2011 ), electric
+double-layer capacitors ( Prill et al., 2017 ), platelet- ﬁlled
+composites ( Röding et al., 2018 ), ﬁber-based materials ( Röding
+et al., 2016 ; Townsend et al., 2021 ), and pharmaceutical coatings
+for controlled drug release ( Barman et al., 2019 ).
+The focus of the present paper is on quantifying the in ﬂuence
+of 3D microstructure on mass transport properties of porous
+materials and, speci ﬁcally, in effective diffusivity and ﬂuid
+permeability. There are numerous microstructural descriptors
+that are useful for the prediction of those properties. The most
+fundamental one is porosity, followed by speci ﬁc surface area
+i.e., the pore-solid interface area per unit volume. However, there
+are many more sophisticated structural descriptors considered in
+literature, e.g., various measures of tortuosity, pore size
+distributions, constrictivity, and two-point correlation
+functions. Various combinations of such descriptors have been
+used to establish microstructure-property relationships of varying
+complexity. The most well-known relationship for permeability is
+perhaps the Kozeny-Carman equation which in its basic form
+only uses porosity and speci ﬁc surface area to describe the
+underlying 3D microstructure ( Kozeny, 1927 ; Carman, 1937
+).
+For effective diffusivity, there exist equally simple formulas, in
+some cases involving only porosity (Masaro and Zhu, 1999). Later
+on, analytical expressions of this type have been developed where
+more complex structural descriptors have been taken into
+account, such as constrictivity and tortuosity ( Barman et al.,
+2019; Neumann. et al., 2020 ), as well as two-point correlation
+functions ( Berryman, 1985 ; Torquato, 1991 ; Jiao and Torquato,
+2012; Liasneuski et al., 2014 ; Hlushkou et al., 2015 ; Ma and
+Torquato, 2018 ). Some of these formulas still are suf ﬁciently
+simple to allow a certain physical interpretation. On the other
+hand, numerous attempts have been made to use high-
+dimensional regression methods and machine learning in
+order to obtain more accurate prediction models, where the
+descriptors of 3D microstructures and mass transport
+properties, as input and output variables, still have physical
+underpinnings. But the relationships derived between them
+are, in a sense, more data-driven and less determined by the
+underlying physics, where this effect ampli ﬁes with increasing
+dimension and complexity of the prediction model. For example,
+in van der Linden et al. (2016) , the permeability and 27 different
+microstructural descriptors were computed for 536 granular
+materials structures. This information was then used to
+develop (log-)linear relationships and ﬁnd relevant subsets of
+descriptors through variable selection procedures. In Stenzel et al.
+(2017), effective conductivity (mathematically equivalent to
+effective diffusivity) and numerous structural descriptors
+including constrictivity and tortuosity were computed for
+8,119 microstructures, where conventional regression, random
+forests, and arti ﬁcial neural networks (ANNs) were used for
+prediction. In Röding et al. (2020) , permeability, tortuosity
+and two-point correlation functions were computed for 30,000
+structures, where log-linear regression and ANNs were used for
+prediction. Although machine learning regression using ANNs is
+less transparent compared to analytical prediction formulas and
+hence less interpretable, the bene ﬁt of this approach is that
+arbitrarily complex relationships can be represented by a feed-
+forward network due to the universal approximation theorem
+(Cybenko, 1989 ; Hornik et al., 1989 ). Hence, machine learning
+regression can be considered a data-science approach that leads to
+insight into new relationships and into which descriptors are
+most useful for prediction ( Umehara et al., 2019 ; Röding et al.,
+2020). A third option is the prediction of effective properties
+using convolutional neural networks (CNNs). Note that
+conventional ANNs learn to perform nonlinear regression
+using prede ﬁned descriptors, whereas CNNs perform their
+own descriptor extraction directly from the microstructure,
+expressed as nonlinear compositions of convolution ﬁlters.
+These are then used as input to a conventional ANN that
+performs the regression ( Kawaguchi et al., 2021 ). CNNs have
+been used for predicting both permeability ( Srisutthiyakorn,
+2016; Wu et al., 2018 ; Araya-Polo et al., 2019 ; Sudakov et al.,
+2019; Graczyk and Matyka, 2020 ; Kamrava et al., 2020 ) and
+effective diffusivity (Wu et al., 2019 ; Wang et al., 2020 ), although
+in many cases with small datasets and/or only with 2D structures.
+Generally, CNNs have the tendency to be even less transparent
+than ANNs in terms of understanding how the prediction works.
+In the present paper, we investigate an extremely broad range
+of virtual two-phase microstructures which are drawn from nine
+different stochastic models. For each model type, 10,000
+microstructures are generated for different speci ﬁcations of
+model parameters leading, e.g., to varying porosities and
+length scales. Hence, in total, our study comprises 90,000
+microstructures. For each structure, both effective diffusivity
+Frontiers in Materials | www.frontiersin.org December 2021 | Volume 8 | Article 7865022
+Priﬂing et al. Mircostructure-Property Relationships for Mass Transport
+
+===== PAGE 3 =====
+and permeability are computed. Furthermore, a multitude of
+structural descriptors is determined, like porosity, speciﬁc surface
+area, median pore radius, radius of the characteristic bottleneck,
+constrictivity, tortuosity (and its distribution), chord lengths (and
+their distribution), spherical contact distribution, and two-point
+correlation functions. The dimension of the largest possible
+descriptor space is equal to 236. As already mentioned above,
+we utilize analytical prediction formulas as well as ANNs and
+CNNs to establish microstructure-property relationships. Due to
+the large diversity of the dataset considered in this paper, the
+determined relationships are not speci ﬁc to any particular
+morphology, but rather quite generally applicable. For CNNs,
+in particular, large amounts of data are needed to ensure robust
+training and good generalization to new data. Thus, to the best of
+our knowledge, the data considered in this paper is the largest and
+most diverse dataset for the study of effective diffusivity and
+permeability, which has been reported so far in the literature. To
+facilitate further development of microstructure-property
+relationships and their predictive power, the microstructures,
+their corresponding morphological and effective properties, and
+the code used to study microstructure-property relationships are
+available open access (Priﬂing et al., 2021c). Note that besides the
+comprehensive database for porous materials considered in the
+present paper, there are several further research activities of this
+kind for other types of materials, e.g., for composite particulate
+materials occurring in crushed ores ( Ditscherlein et al., 2021 ).
+The rest of this paper is organized as follows. In Section 2 the
+deﬁnitions of various structural descriptors are explained as well
+as their estimation from 3D image data. They are used as input
+variables for establishing microstructure-property relationships.
+Then, in Section 3, two descriptors of effective properties, namely
+diffusivity and permeability of the pore space, are presented,
+which serve as output variables. Section 4 introduces the
+stochastic models used for the arti ﬁcial generation of 3D
+microstructures, whereas in Section 5 three different
+approaches are explained which are applied to establish the
+microstructure-property relationships. Finally, a discussion of
+the results obtained in this paper is provided in Section 6 .
+2 STRUCTURAL DESCRIPTORS AND
+THEIR ESTIMATION
+The goal of this section is to explain the de ﬁnitions of various
+structural descriptors considered in this paper as well as methods
+for their estimation from simulated 3D image data, where the
+underlying stochastic 3D microstructure models described in
+Section 4 are stationary and isotropic. This implies that the
+pore space is a stationary and isotropic random set as well, which
+will be denoted by Ξ in the following, i.e., its distribution is
+invariant with respect to translations of and rotations around the
+origin (Lantuéjoul, 2002; Chiu et al., 2013; Jeulin, 2021). Note that
+all microstructures that are drawn from these stochastic models
+fulﬁll periodic boundary conditions in x-, y- and z-directions.
+This is taken into account when estimating the structural
+descriptors as presented below. In addition to simple scalar
+descriptors of Ξ such as volume fraction, speci ﬁc surface area
+or constrictivity, we also consider more complex descriptors like
+the chord length distribution, the spherical contact distribution
+and the distribution of geodesic tortuosity. In practice, we
+represent these distributions by their quantiles, starting from
+5%-u pt o9 5 %-quantiles in 5 % steps.
+2.1 Porosity
+To begin with, we consider one of the simplest but most
+important structural descriptors, namely the porosity ε ∈ [0, 1],
+i.e., the volume fraction of the random pore space Ξ ⊂ R3, where
+ε /equals E(]3(Ξ ∩ [0, 1]3)) and ]3 denotes the three-dimensional
+Lebesgue measure. This characteristic can be easily
+estimated from 3D image data by the point-count method
+(Chiu et al., 2013 ). Note that this estimation method has
+obviously not to be adapted further to account for periodic
+boundary conditions.
+2.2 Speci ﬁc Surface Area
+A further relevant scalar descriptor is the speci ﬁc surface area of
+the interface between solid and pores, denoted by S > 0. It is
+deﬁned as the expected surface area of the pore space per unit
+volume. In order to estimate this characteristic from voxelized
+binary images, we compute weighted sums by considering local
+2 × 2 × 2 voxel conﬁgurations, where we use the weights proposed
+by Schladitz et al. (2007). Periodic boundary conditions are taken
+into account by a circular padding of size one in each direction
+using the Matlab command “padarray” (MATLAB, 2021 ).
+2.3 Geodesic Tortuosity
+Next, we consider the geodesic tortuosity of the pore space, which
+is a purely geometric quantity that signi ﬁcantly in ﬂuences
+effective properties ( Stenzel et al., 2016 ; Barman et al., 2019 ;
+Neumann. et al., 2020; Holzer et al., 2021). It is important to point
+out that different concepts of tortuosity exist in the literature
+(Clennell, 1997; Ghanbarian et al., 2013 ; Tjaden et al., 2018 ). The
+general idea is to consider shortest paths from a prede ﬁned
+starting plane to a target plane, which have to be completely
+contained in the pore phase. This means, that we consider the
+shortest path with respect to the geodesic metric of the pore space
+(Lantuéjoul and Maisonneuve, 1984 ). Then, the distribution of
+the lengths τ
+geo of those shortest paths, divided by the distance of
+the two planes, is denoted by d(τgeo). Recall that, in this paper, the
+distribution d(τgeo) is represented by 19 quantiles, starting from
+5%-u pt o9 5 %-quantiles in 5 % steps. Furthermore, mean
+geodesic tortuosity, denoted by m(τgeo) ≥ 1, is de ﬁned as the
+mean value of the random variable τgeo, whereas its standard
+deviation is denoted by σ(τgeo). A more formal deﬁnition of these
+quantities within the framework of random sets can be found in
+Neumann et al. (2019b) , whereas a slightly different de ﬁnition of
+geodesic tortuosity is presented in Barman et al. (2019) .
+Regarding the estimation of the distribution of geodesic
+tortuosity from 3D image data, we compute the shortest paths
+with the Dijkstra algorithm ( Jungnickel, 2007 ), where the
+transport direction is from low x-values to high x-values. Note
+that the transport paths are allowed to “leave” the sampling
+window in the y- and z-directions in order to account for
+periodic boundary conditions.
+Frontiers in Materials | www.frontiersin.org December 2021 | Volume 8 | Article 7865023
+Priﬂing et al. Mircostructure-Property Relationships for Mass Transport
+
+===== PAGE 4 =====
+2.4 Constrictivity
+In order to de ﬁne the constrictivity of the pore space, denoted by
+β ∈ [0, 1], we ﬁrst describe the continuous pore size distribution
+(CPSD) as well as the concept of simulated mercury intrusion
+porosimetry (MIP). The continuous pore size distribution
+CPSD: [0, ∞ ) → [0, 1] has been introduced in Münch and
+Holzer (2008) and is based on a morphological opening
+(Serra, 1982 ; Soille, 2003 ). More precisely, for each radius
+r ≥ 0, the value CPSD (r) is given by the volume fraction of
+the pore space that can be covered by a potentially overlapping
+union of spheres with radius r, which have to be completely
+contained in the pore space. The radius r
+max is now deﬁned as the
+radius for which CPSD (rmax) equals half of the porosity,
+i.e., CPSD (rmax)/equals CPSD(0)/2. The estimation of CPSD (r)
+from image data relies on the computation of the so-called
+Euclidean distance transform ( Maurer et al., 2003 ; Soille,
+2003), which allows to perform an erosion followed by a
+dilation using a ball with radius r as structuring element. In
+order to take periodic boundary conditions into account, the
+computation of the Euclidean distance transform has to be
+adapted as follows. At ﬁrst, a circular padding is applied to
+the binary image leading to a 3D image, which is twice as
+large in each of the three directions. In a second step, the
+Euclidean distance transform is computed on the enlarged
+image. Afterwards, a 3D cutout with the same size as the
+original image, whose centroid corresponds to the centroid of
+the enlarged Euclidean distance transform, is cut out of the
+enlarged Euclidean distance transform. Finally, a circular shift
+is applied to this cutout using the “circshift” command in Matlab
+in order to restore the original spatial arrangement of the voxels
+(MATLAB, 2021 ).
+The concept of simulated mercury intrusion porosimetry
+(MIP) is similar to that of the CPSD, except that MIP depends
+in general on a prede ﬁned direction. More precisely, the union of
+potentially overlapping balls of radius r considered above has to
+form an intrusion from the given direction, when computing the
+correspondingly modi ﬁed volume fraction MIP(r). This
+accounts for bottlenecks in the pore space such that the values
+of the function MIP: [0, ∞ ) → [0, 1] are always less or equal than
+the corresponding values of CPSD : [0, ∞ ) → [0, 1],
+i.e., MIP (r) ≤CPSD(r) for all r ≥ 0. In order to simulate the
+intrusion from low x-values to high x-values, the Hoshen-
+Kopelman algorithm is used ( Hoshen and Kopelman, 1976 ),
+where it is straightforward to apply periodic boundary
+conditions in y- and z
+-directions. Note that due to our
+stationarity and isotropy assumptions, the values of MIP do
+not depend on the choice of the prede ﬁned direction. However,
+within the present paper, this quantity is computed inx-direction,
+where the intrusion starts at low x-values. Analogously to rmax,
+the radius rmin is deﬁned as the radius for which MIP(rmin) equals
+half the porosity, i.e., MIP (rmin)/equals CPSD(0)/2.
+The constrictivity of the pore space is now given by
+β /equals( rmin
+rmax
+)2 ∈ [0, 1] (Münch and Holzer, 2008 ), where a
+constrictivity of one occurs if there are no constrictions within
+the pore space at all. The lower the constrictivity, the more the
+transport within the pore space is hindered by bottlenecks. This
+geometric characteristic has turned out to signi ﬁcantly inﬂuence
+effective properties of functional materials (Holzer et al., 2013). A
+formal de ﬁnition of constrictivity within the framework of
+random sets can be found in Neumann et al. (2019b) .
+2.5 Chord Length Distribution
+The chord length distribution of the pore space, which is
+modelled by a stationary random set Ξ ⊂ R3,i sd e ﬁned as
+follows ( Ohser and Mücklich, 2000 ; Ohser and Schladitz, 2009 ;
+Chiu et al., 2013 ). Given a prede ﬁned direction
+φ ∈ [0, π
+2]×[ 0, 2π), the chord length distribution of the
+random set Ξ in direction φ is the distribution of the length L
+of the so-called typical line segment (selected at random) in Ξ ∩ ℓ,
+where ℓ denotes the line passing through the origin in direction φ.
+The distribution of L is denoted by d(L) and, again, represented
+by 19 quantiles, starting from 5 %-u pt o9 5 %-quantiles in 5 %
+steps. Note that d(L) does not depend on the particular choice of
+φ, when considering stationary and isotropic random sets. The
+mean and the standard deviation of the chord length distribution
+are denoted by m(L) and σ(L), respectively. In the present paper,
+observing Ξ ∩ ℓ ∩ W within some sampling window W ⊂ R
+3, the
+chord length distribution is estimated by counting subsequent
+voxels belonging to the pore space along the x-axis and
+computing the empirical distribution function of the lengths of
+these voxel sequences. Note that periodic boundary conditions
+can be simply accounted for by merging the ﬁrst and the last
+chord in Ξ ∩ ℓ ∩ W, provided that both chords belong to the
+pore space.
+2.6 Spherical Contact Distribution
+Consider the (random) distance H from the typical point of
+Ξc /equals R3\Ξ to the nearest point within Ξ.T h ef u n c t i o nFH:
+[0, ∞ ) → [0, 1] with FH(r)/equals P(H ≤ r) for each r ≥ 0 is called
+the spherical contact distribution function of Ξ.N o t et h a tt h e
+values of FH are given by
+FH(r)/equals 1 − P(Ξ ∩ B(o, r)/equals ∅ )
+1 − ε for each r ≥ 0,
+where B(o, r) ⊂ R3 denotes the closed ball with radius r centered
+at the origin (Chiu et al., 2013). The mean, standard deviation and
+distribution of H are denoted by m(H), σ(H) and d(H),
+respectively. These quantities can be estimated from voxelized
+3D image data using the algorithm proposed by Mayer (2004) ,
+which relies on the computation of the Euclidean distance
+transform. Thus, periodic boundary conditions are taken into
+account by computing the Euclidean distance transform with
+respect to periodic boundary conditions as described above in
+Section 2.4 . As in case of the distribution of geodesic tortuosity
+and the chord length distribution, the distribution d(H)i s
+represented by 19 quantiles.
+2.7 Two-Point Correlation Function
+For a stationary and isotropic random set Ξ ⊂ R3 describing the
+pore space of a porous material, the two-point (pore-pore)
+correlation function C: [0, ∞ ) → [0, 1], which is also called
+covariance function ( Serra, 1982 ; Ohser and Schladitz, 2009 ), is
+deﬁned as
+Frontiers in Materials | www.frontiersin.org December 2021 | Volume 8 | Article 7865024
+Priﬂing et al. Mircostructure-Property Relationships for Mass Transport
+
+===== PAGE 5 =====
+C(r)/equals P(o ∈ Ξ,x ∈ Ξ) for each r ≥ 0, (1)
+where x ∈ R3 is an arbitrary point with distance r to the origin
+(Matheron, 1975 ; Torquato, 2002 ; Chiu et al., 2013 ). This
+quantity can be estimated from voxelized image data by the
+Fourier method described in Ohser and Schladitz ( Ohser and
+Schladitz, 2009), where no further step is required to account for
+periodic boundary conditions. In practice, we represent the two-
+point correlation function by C(0), C(1), ... , C(167), where 167 /equals
+⌈
+/radicaltpext/radicaltpext/radicaltpext/radicaltpext/radicaltpext/radicaltpext/radicaltpext/radicaltpext/radicaltpext/radicaltpext/radicaltpext/radicaltpext
+3 ·( 0.5 · 192)
+2
+√
+⌉ is the maximal distance of two points within
+the sampling window W /equals [0,192]3 with respect to periodic
+boundaries. Note that the pore-solid and solid-solid correlation
+functions are uniquely determined by the pore-pore correlation
+function.
+3 EFFECTIVE TRANSPORT PROPERTIES
+In this section we brie ﬂy explain two effective transport
+properties, namely diffusivity and permeability of the pore
+space, for which numerical simulations are carried out to
+estimate these quantities from 3D image data.
+3.1 Diffusivity and M-Factor
+Effective tortuosity of the pore space is usually de ﬁned by
+τeff /equals ε · D0
+Deff
+,
+where D0 denotes the intrinsic diffusivity and Deff the effective
+diffusivity of the pore phase (Cooper et al., 2016). Note thatDeff ≤ D0,
+because the solid phase acts as obstacle hindering the diffusion
+process. The characteristic D
+eff plays a major role in a broad
+spectrum of applications including water ﬂow ( Sahimi, 2011 ;
+Bear, 2018 ), battery electrodes ( Newman and Thomas-Alyea,
+2004; Thorat et al., 2009 ; Kehrwald et al., 2011 ; Nguyen et al.,
+2020), solid oxide fuel cells (Cooper et al., 2013), biology (Jiao and
+Torquato, 2012)a n dh e a tt r a n s f e r(Nellis and Klein, 2009; Kaviany,
+2012). This quantity is estimated from voxelized image data using
+the TauFactor app for Matlab (Cooper et al., 2016). More precisely,
+effective diffusivity is obtained by numerically solving Laplace ’s
+equation on Ξ, i.e., the following second-order differential
+equation is solved:
+∇2c /equals 0o n Ξ, (2)
+where c denotes the concentration of the diffusing species. Apart
+from mass conservation within the pore space, one has to ensure
+that the diffusing species can not intrude into the solid phase,
+which is formally described the following equation at the interface:
+∇c
+°n /equals 0o n zΞ, (3)
+where the outward pointing unit normal is denoted by n and ◦
+denotes the scalar product. Finally, the following equations are
+the driving force for the ﬂux in x-direction:
+c /equals 0o n Ξ ∩ x
+0 and c /equals 1o n Ξ ∩ xmax, (4)
+where x0 and xmax denote the two parallel planes described by
+x /equals 0 and x /equals 192, respectively. Note that periodic boundary
+conditions are applied in y- and z-direction. Further technical
+details regarding the implementation of the equations above can
+be found in ( Cooper et al., 2016 ).
+The M-factor, deﬁned as M /equals Deff/D0,i sn o wg i v e nb yM /equals ε/τeff,
+where it holds that M ∈ [0, ε] and, equivalently, τeff ≥ 1, according
+to Eq. 21.14 in the book of Torquato (2002). In particular, lower
+values of M correspond to more pronounced transport limitations,
+whereas a high value of M indicates nearly no hindrance of
+diffusion processes.
+3.2 Permeability
+The lattice Boltzmann method is a numerical framework for
+solving partial differential equations based on kinetic theory, and
+is used to simulate ﬂuid ﬂow through porous microstructures
+(Gebäck and Heintz, 2014 ; Gebäck et al., 2015 ). The Navier-
+Stokes equations for pressure-driven ﬂow are solved for the
+steady state. No-slip, bounce-back boundary conditions are
+used on the interface between the two phases and periodic
+boundary conditions are applied orthogonal to the ﬂow
+direction. We use the two relaxation time collision model with
+the free parameter λ
+eo /equals 3
+16. This ensures that the computed
+permeability is independent of the relaxation time (and
+thus the viscosity) ( Ginzburg et al., 2008 ). The relaxation time
+t
+rel /equals− 1
+λe
+is kept at 1.25. The ﬂow is driven by a constant pressure
+difference across the structure in the transport direction along the
+x-axis (Zou and He, 1997 ), and a linear gradient is used as initial
+condition. The computational grid has the same resolution as the
+binary structure arrays, i.e., 192
+3
+. After convergence to steady-
+state ﬂow, the permeability κ is extracted from Darcy ’s law
+(Torquato, 2002 ),
+/C22u /equals− κΔp
+μd . (5)
+Here, /C22u is the average velocity, Δp is the applied pressure
+difference, μ is the dynamic viscosity, and d is the length of the
+microstructure in the ﬂow direction. The permeability is
+independent of the ﬂuid and the pressure difference and is
+hence a property solely of the microstructure, provided that
+the Reynolds number is suf ﬁciently small ( < 0.01). This also
+ensures that the velocity is proportional to the pressure difference.
+Note that, since we are dealing with simulated microstructure
+data on the voxel grid, computed permeabilities are given in
+(voxel unit)
+2.
+4 MICROSTRUCTURE GENERATORS
+In order to determine microstructure-property relationships
+which are as general as possible, we generate a large set of
+periodic microstructures with different types of geometries.
+More precisely, from each of nine different types of spatial
+stochastic models we draw 10,000 microstructures such that 1)
+their porosities are (approximately) uniformly distributed in the
+interval [0.3, 0.95], and 2) the values of further transport-relevant
+Frontiers in Materials | www.frontiersin.org December 2021 | Volume 8 | Article 7865025
+Priﬂing et al. Mircostructure-Property Relationships for Mass Transport
+
+===== PAGE 6 =====
+microstructure characteristics (like speci ﬁc surface area, rmin and
+rmax) are located in the same ranges. As a consequence, also the
+values of effective diffusivity and permeability are located in the
+same ranges for the nine different types of stochastic
+microstructure models. Some of the microstructures
+considered in the present paper are de ﬁned in the
+(continuous) Euclidean space, whereas others are generated
+directly on a computational grid. Finally, all structures are
+converted into 192
+3 binary arrays with periodic boundary
+conditions. The different types of microstructures, described
+below in detail, are (I) ﬁber systems, (II) channel systems, (III)
+spatial stochastic graphs, (IV) level sets of Gaussian random
+ﬁelds, (V) level sets of spinodal decompositions, (VI) hard
+ellipsoids, (VII) smoothed hard ellipsoids (VIII) soft ellipsoids,
+and (IX) smoothed soft ellipsoids. Examples of microstructures
+drawn from the nine different model types are shown in Figure 1.
+Note that, as can be seen in Figure 2, the microstructure models
+considered in the present paper are designed in such a way that
+the resulting sets of arti ﬁcially generated microstructures are
+disperse in the sense that their mic rostructure descriptors cover
+a wide spectrum of values. In particular, keeping the value of a
+certain microstructure descriptor ﬁxed, the values of other
+characteristics can still be varied “independently ” (to a
+certain extent). However, on the other hand, note that due to
+inherent correlations between some pairs of geometric
+microstructure descriptors, the space of values that can be
+covered is naturally limited. For example, porosity values
+close to one typically go along with a low mean geodesic
+tortuosity. To summarize, the 90,000 microstructures drawn
+from the nine different stochastic models lead to an extensive
+dataset representing a broad range of morphologies, which
+allows us to attribute a ce rtain generality of the
+microstructure-property relationships determined in the
+present paper.
+4.1 Fiber Systems
+The ﬁber systems considered in this paper are generated using
+essentially the method described in Townsend et al. (2021) ,
+with modi ﬁcations to allow for periodic and isotropic
+structures. Individual ﬁbers are ﬁrst represented as a set of
+FIGURE 1 | Examples of the different types of microstructures, showing an arti ﬁcially generated ﬁber system (I), channel system (II), spatial graph (III), level set of a
+Gaussian random ﬁeld (IV), level set of a spinodal decomposition (V), as well as systems of hard ellipsoids (VI), smoothed hard ellipsoids, (VII), soft ellipsoids (VIII), and
+smoothed soft ellipsoids (IX). Note that the solid phase is always depicted in blue, whereas mass transport takes place in the transparent porous phase.
+Frontiers in Materials | www.frontiersin.org December 2021 | Volume 8 | Article 7865026
+Priﬂing et al. Mircostructure-Property Relationships for Mass Transport
+
+===== PAGE 7 =====
+nodes generated by a random walk. The angle between the
+directions of two consecutive steps of the random walk are
+drawn from a spherical von Mises distribution ( Mardia and
+Jupp, 1999 ). The parameters of the von Mises distribution are
+the mean direction μ
+dir , which is computed using the angle
+between the previous two nodes, and the concentration θdir ,
+which speci ﬁes the global bending tendency of the ﬁbers. The
+random walks have a ﬁxed length of 8 nodes. The step length
+is drawn from a normal distribution with mean 16 voxels and
+standard deviation 2 voxels. To generate the skeleton of a
+ﬁber, we plot a smooth Bézier curve ( Gallier, 2000 )t h r o u g h
+its node points. A curvature parameter ρ for the Bézier curves
+controls the local bending tendency of the ﬁbers. This
+skeleton is discretized on the 192
+3 voxel grid and then
+dilated to obtain the ﬁnal cylindrical ﬁbers with radius r,
+subject to periodic boundary conditions. The concentration
+parameter θdir and the curvature ρ are drawn from the
+uniform distribution on the intervals ( Torquato, 2002 ;
+Furat et al., 2021 ) and [0.25, 0.75], respectively.
+Furthermore, the ﬁber radius r is drawn at random from
+the set of integers {2, 3, 4, 5, 6, 7, 8}. Starting from a fully
+porous structure (without any ﬁbers), new ﬁbers are added
+until the desired porosity is reached. The method is
+implemented in MATLAB (2021) .
+4.2 Channel Systems
+Systems of channels are generated using essentially the same code
+as for the ﬁber systems considered in Section 4.1 , treating the
+ﬁbers as porous channels instead. The parameters of the random
+walks, the Bezier curves, and the ﬁber radii are sampled in the
+same fashion as in Section 4.1 . Starting from a fully solid
+structure (without any channels), new channels are added
+until the desired porosity is reached.
+4.3 Spatial Stochastic Graphs
+Spatial stochastic graph structures are generated using a model
+that has been introduced in Gaiselmann et al. (2014), where it has
+been applied to mimic the 3D microstructure of solid oxid fuel
+cells. The spatial graph model is based on a homogeneous Poisson
+point process X /equals{ X
+n}n∈N with parameter λ > 0( Last and
+Penrose, 2017 ), where λ /equals E#{n ∈ N: Xn ∈ [0, 1]3} is the
+expected number of points per unit volume, with #A denoting
+the cardinality of a set A. Note that by this frequently used point-
+process model the situation of complete spatial randomness is
+depicted, i.e., there is no interaction between the points X
+n.F o ra
+more formal introduction to the concept of point processes, the
+reader is referred, e.g., to the monographs ofDaley and Vere-Jones
+(2005) and Daley and Vere-Jones (2008) . Next, the relative
+neighborhood graph GX /equals (X, EX)( Toussaint, 1980 )i s
+constructed, where the set X of vertices is given by the atoms
+Xn of the underlying homogeneous Poisson process. In order to
+deﬁne the edge set EX, a so-called critical region R(p1,p 2)/equals
+B(p1, ∥p1 − p2∥) ∩ B(p2, ∥p1 − p2∥) for p1,p 2 ∈ R3 is
+considered, where ∥p∥ denotes the Euclidean norm of p ∈ R3.
+The edge set EX is now given byEX /equals {(Xi, Xj) ∈X × X: #(R(Xi, Xj) ∩
+X) /equals 2}, This means that there is an edge between two points Xi
+and Xj if and only if there is no further point ofX within the critical
+region R(Xi, Xj) except for Xi and Xj themselves. Finally, each edge
+e ∈ EX is dilated using a sphere as structuring element ( Soille,
+2003). The radius of the sphere follows a Gamma distribution with
+expectation μΓ and variance σ2
+Γ, where each edge is dilated
+independently from the other edges. In order to obtain an
+approximately uniformly distributed porosity between 0.3 and
+0.95, we draw the model parametersλ, μ
+Γ and σ2
+Γ from the uniform
+distribution on the intervals [10 –5,5 · 10–4], [1, 10] and [1, 6],
+respectively. Then, after generating 25,000 samples of such
+microstructures, it was possible to select 10,000 of them leading
+to the desired uniform distribution of porosities on the interval
+[0.3, 0.95]. The generation of 3D microstructures by the spatial
+stochastic graph model described above is carried out by in-house
+Java software using the Geostoch framework ( Mayer et al., 2004).
+4.4 Level Sets of Gaussian Random Fields
+Level sets of Gaussian random ﬁelds are a well-known concept of
+stochastic geometry ( Lantuéjoul, 2002 ; Chiu et al., 2013 ) which,
+among others, is used for modeling the 3D microstructure of
+FIGURE 2 | Speciﬁc surface area (in (voxelunit) −1) (A), mean geodesic
+tortuosity (B), standard deviation of geodesic tortuosity (C), characteristic
+bottleneck radius rmin (in voxelunit) (D), constrictivity (E) and mean chord
+length (in voxelunit) (F) as a function of porosity, where 250 structures
+have been randomly selected for each of the nine different microstructure
+models, depicted by nine distinct colors. Note that the roman numbers in the
+legend correspond to the numbering of the nine stochastic model types
+mentioned at the beginning of Section 4 .
+Frontiers in Materials | www.frontiersin.org December 2021 | Volume 8 | Article 7865027
+Priﬂing et al. Mircostructure-Property Relationships for Mass Transport
+
+===== PAGE 8 =====
+anodes in lithium-ion batteries ( Kremer et al., 2020 ) and
+electrodes in solid oxide cells ( Moussaoui et al., 2018 ). In the
+present paper, periodic Gaussian random ﬁelds are generated
+using an approach based on the fast Fourier transform (FFT)
+(Lang and Potthoff, 2011 ). It utilizes the spectral density of the
+covariance function to generate a random ﬁeld with the desired
+covariance structure. In particular, zero-centered white noise
+(independent and normal distributed) is generated in the
+spatial domain, transformed to the Fourier domain, and
+multiplied by the square root of the spectral density, where
+four types of spectral densities (power-law, exponential,
+Gaussian, and circular top-hat) are used to generate 2,500
+structures of each kind ( Röding et al., 2020 ). After linear
+rescaling and applying inverse FFT, a Gaussian random
+ﬁeld with mean zero and the speci ﬁed covariance function
+is obtained. The parameters of the different spectral densities
+are chosen to ensure a suitable range of length scales. Finally,
+binary microstructures are obtained as level sets of the random
+ﬁelds, i.e., the desired porosities are obtained by thresholding
+at appropriate quantiles of the Gaussian random ﬁeld intensity
+distributions. The method is implemented in MATLAB
+(2021) .
+4.5 Level Sets of Spinodal Decompositions
+Phase separation dynamics through the spinodal decomposition
+mechanism are simulated by solving a system of Navier-Stokes
+and Cahn-Hilliard equations ( Miranville, 2019 ). A ﬁeld of
+spatially resolved concentrations, denoted by ψ (x,t ) ∈ [0, 1],i s
+evolved in time using the lattice Boltzmann method (Krüger et al.,
+2017). Initially, the values of ψ are uniformly distributed in the
+interval [0, 1], independently for all grid points on a 96 3 grid. The
+spatiotemporal evolution of the concentration pro ﬁle is
+determined by several factors such as surface tension, density
+and viscosity ratio between the two phases. These three
+characteristics are chosen log-uniformly distributed in their
+respective ranges to yield a slightly different behaviour of the
+interfacial geometry. Furthermore, the numbers of time steps,
+which control the degree of coarsening of the structures, are
+chosen such that a suitable range of length scales is obtained. Note
+that the Lifshitz-Slyozov law states that the typical length scale in
+the structure is proportional to the cubic root of the simulation
+time ( Lifshitz and Slyozov, 1961 ). After terminating the
+simulations, the solutions are upscaled to 192
+3 voxels. Finally,
+in the same way as described in Section 4.4 for Gaussian random
+ﬁelds, the desired porosities are obtained by thresholding at
+appropriate quantiles of the concentration intensity
+distributions. The spinodal decomposition simulations are
+implemented using in-house software based on the lattice
+Boltzmann method ( Gebäck and Heintz, 2014 ; Gebäck et al.,
+2015).
+4.6 Hard Ellipsoids
+Conﬁgurations of hard (i.e., non-overlapping) ellipsoids have
+been used as models for e.g., separation columns ( Bertei et al.,
+2014 ) and are simulated using a hard-particle Markov Chain
+Monte Carlo (MCMC) algorithm ( Brooks et al., 2011 ).
+Initially, the ellipsoids are placed at random locations and
+with random orientations. Then, the con ﬁgurations are
+relaxed by performing random translations and rotations of
+all particles until no pairs of particles overlap. If the desired
+porosity is larger than 0.5, non-overlapping con ﬁgurations
+can be generated easily at constant porosity as described
+above. Otherwise, as a preliminary procedure, the steps
+described above are performed for a porosity of 0.5 and
+then the resulting con ﬁg u r a t i o ni sc o m p r e s s e di ns m a l l
+steps, until the target porosity is reached. The magnitudes
+of proposed translations and rotations are adaptively selected
+such that the acceptance probability is held at 0.25. The
+number of ellipsoids is between 8 and 512, yielding a wide
+range of length scales. In addition, the ellipsoids are given by
+vectors of semi-axes (1, 1, α) where the random variable α is
+uniformly distributed in the interval [0.25, 1] (oblate) with
+probability 0.5 and, otherwise, uniformly distributed in [1, 4]
+(prolate). The microstructures drawn from this model are
+generated using in-house developed software ( Röding, 2017 ;
+Röding, 2018 ) implemented in Julia ( Bezanson et al., 2017 ).
+4.7 Smoothed Hard Ellipsoids
+Conﬁgurations of smoothed hard ellipsoids are generated in the
+same manner as the hard ellipsoid systems described in Section
+4.6, with the only difference that the ﬁnal discretized structure is
+smoothed with a Gaussianﬁlter, the standard deviation of which is
+randomly sampled in the range of [2, 16] voxels ( Gonzalez and
+Woods, 2008 ; Russ, 2007 ). This yields structures with a semi-
+continuous solid phase in contrast to the systems of hard ellipsoids
+described in Section 4.6, which consist of discrete particles. Note
+that similar structures have been used in Prill et al. (2017) as a
+model for porous electrodes, where spheres instead of random
+ellipsoids are considered.
+4.8 Soft Ellipsoids
+Conﬁgurations of soft (i.e., overlapping) ellipsoids are created
+in a similar fashion as the systems of hard ellipsoids considered
+in Section 4.6 , but without implementing a speci ﬁco v e r l a p
+criterion. Instead, ellipsoids with random locations and
+orientations are sequentially added until the desired
+porosity has been obtained. The ellipsoid sizes relative to
+the simulation window are selected at random to yield an
+appropriate range of length scales. As in the case of hard
+ellipsoid systems considered in Section 4.6 , soft ellipsoids are
+given by vectors of semi-axes (1, 1, α), where α is uniformly
+distributed in [0.25, 1] (oblate) with probability 0.5 and,
+otherwise, uniformly distributed in [1, 4] (prolate). The
+method is implemented in Bezanson et al. (2017) .
+4.9 Smoothed Soft Ellipsoids
+Conﬁgurations of smoothed soft ellipsoids are generated in the
+s a m em a n n e ra st h es y s t e m so fs o f te l l i p s o i d sc o n s i d e r e di n
+Section 4.8 , with the only difference that the ﬁnal discretized
+structure is smoothed with a Gaussian ﬁlter, the standard
+deviation of which is randomly sampled in the range of
+[2, 16] voxels ( Russ, 2007 ; Gonzalez and Woods, 2008 ).
+This yields structures with a smoother, more continuous
+solid phase.
+Frontiers in Materials | www.frontiersin.org December 2021 | Volume 8 | Article 7865028
+Priﬂing et al. Mircostructure-Property Relationships for Mass Transport
+
+===== PAGE 9 =====
+5 MICROSTRUCTURE-PROPERTY
+RELATIONSHIPS
+For the 90,000 samples of 3D microstructures generated by the
+stochastic models described in Section 4 , the structural
+descriptors explained in Section 2 as well as the effective
+transport properties stated in Section 3 are computed. This
+data is then used to establish microstructure-property
+relationships by means of three different approaches, namely
+analytical prediction formulas, (arti ﬁcial) fully-connected neural
+networks (ANNs) and convolutional neural networks (CNNs).
+For this, the data is randomly shuf ﬂed and split into three subsets
+of training, validation, and test data, respectively. This is done in a
+stratiﬁed manner such that an equal number of microstructures
+of each type is included in each of the three datasets. The split,
+which is the same for each of the three types of prediction models,
+is 70% training data (7,000 per type of microstructure and 63,000
+in total) and 15% each for the validation and test data (1,500 per
+type of microstructure and 13,500 in total).
+Several error measures are considered to assess predictive
+performance. For ﬁtting the prediction models, the mean
+squared error (MSE) loss is used, where
+MSE /equals
+1
+k ∑
+k
+j/equals 1
+(^yj − yj)2. (6)
+Here y1, ... , yk is the ground truth data of a given output
+variable and ^y1, ... , ^yk are the corresponding estimates predicted
+by the model. Depending on context, the MSE loss is used either
+on the output variables themselves or on transformed outputs.
+Further details can be found below in Sections 5.1 –5.3 for the
+three types of microstructure-property relationships considered
+in this paper. Note that the MSE loss is an appropriate loss
+function for optimization because it is differentiable. In contrast,
+for ﬁnal assessment, the mean absolute percentage error (MAPE)
+loss is used, where
+MAPE /equals
+100
+k ∑
+k
+j/equals 1
+^yj − yj
+yj
+⏐⏐⏐⏐⏐⏐⏐⏐
+⏐⏐⏐⏐⏐⏐⏐⏐. (7)
+However, because the MAPE loss is not everywhere
+differentiable, it is less well-behaved as an optimization target,
+but on the other hand it is more interpretable.
+In addition, we consider the coef ﬁcient of determination
+R
+2 ∈ [0, 1], which is given by
+R2 /equals 1 −
+∑
+k
+j/equals 1
+(yj − ^yj)2
+∑
+k
+j/equals 1
+(yj − /C22y)2
+, (8)
+where /C22y denotes the empirical mean of the ground truth data
+y1, ... , yk. Since the values for permeability cover several orders of
+magnitude, the value of R2 would be dominated by those terms
+that involve large values. For this reason, we also consider the
+coefﬁcient of determination on the log scale, denoted by
+R2
+log ∈ [0, 1]. In particular, it holds
+R2
+log /equals 1 −
+∑
+k
+j/equals 1
+(log(yj)− log(^yj))2
+∑
+k
+j/equals 1
+(log(yj)− /C22ylog)2
+, (9)
+where /C22ylog is deﬁned as the empirical mean of the sample log( y1),
+... , log(yk).
+Before the derivation of microstructure-property relationships
+is discussed, we ﬁrst quantify the “amount of information” that is
+contained in the different structural descriptors with regard to
+permeability, effective tortuosity and the M-factor. For this purpose,
+we make use of the measure of general functional dependence,
+which has been introduced in ( Xu et al., 2017 ). In contrast to
+several widely used quantities such as Pearson ’s ρ, Kendall’s τ or
+Spearman’s ρ, this characteristic, denoted by 0 ≤ δ(x, y) ≤ 1, relies
+neither on a linear nor on a monotone relationship between the
+quantities x and y. Thus, it can be used to quantify the importance
+of a single (scalar) structural descriptorx on an effective propertyy,
+where higher values correspond to a higher “amount of
+information”. The upper limit of 1 is reached if and only if x is
+af u n c t i o no fy or vice versa since in general it holdsδ(x, y) /equals δ(y, x).
+The corresponding results are shown in Table 1 . Note that the
+values for the effective tortuosity are always larger than for the
+M-factor, which is probably caused by the fact that τ
+eff already
+contains the porosityε. However, it is worth mentioning that a low
+value of the functional dependence measure does not automatically
+imply that this quantity should not be considered for predicting a
+certain effective property. This is due to the fact that δ(x, y)o n l y
+contains some information on the predictive power ofx with regard
+to y, but not regarding the usefulness ofx in combination with other
+structural descriptors. This also explains the fact that the
+normalized quantity M turned out to be predicted with higher
+accuracy than τ
+eff, and therefore we stick to M for the rest of this
+work. It is also interesting to point out that m(L)a n dσ(L) seem to
+be closely related to permeability and effective tortuosity,
+considering that the chord length distribution is rarely used in
+the literature for establishing microstructure-property relationships.
+5.1 Analytical Prediction Formulas
+In this section, microstructure-property relationships are derived
+by analytical prediction formulas, whose parameters are ﬁtted by
+least-squares regression ( Sen and Srivastava, 2012 ). More
+precisely, we use the trust-region-re ﬂective algorithm
+(Coleman and Li, 1994 ; Coleman and Li, 1996 ) for
+unconstrained least-squares problems and the interior point
+algorithm ( Byrd et al., 2000 ; Waltz et al., 2006 ) for
+constrained ones. Since there are no hyperparameters in case
+of analytical prediction formulas, we merge the training set with
+the validation set for computing the ﬁtting parameters and use the
+test set for assessing performance. Altogether, we state nine
+analytical prediction formulas and their ﬁtting parameters.
+Afterwards, a comparison of these formulas is carried out,
+including an interpretation of the results.
+To begin with, we consider several relationships between
+geometric microstructure descriptors given in Section 2 and
+the M-factor stated in Section 3 . Recall that according to
+Frontiers in Materials | www.frontiersin.org December 2021 | Volume 8 | Article 7865029
+Priﬂing et al. Mircostructure-Property Relationships for Mass Transport
+
+===== PAGE 10 =====
+Equation 21.14 in the book of S. Torquato ( Torquato, 2002 ), it
+holds that M ∈[0, 1], which is also ensured for the predictions ^M
+of M presented below. At ﬁrst, we consider a type of a parametric
+formula, which has been originally proposed in Stenzel et al.,
+2016) and later reconsidered in Eq. 4 of Neumann. et al. (2020) .
+More precisely, the M-factor is predicted by
+ˆM /equals εc1 βc2 m(τgeo)c3 . (10)
+To ensure that ^M ∈ [0, 1], we use the constraints c1 ≥ 1 and
+c2 ≥ 0, which leads to the following results:c1 /equals 1,c2 /equals 0a n dc3 /equals − 8.45.
+More precisely, the best ﬁt in a least-squares sense does not
+contain the constrictivity β, whereas the exponent of the porosity
+equals the lower limit of one. Note that Formula ( Eq. 10 ) for
+predicting the M-factor has been modi ﬁed in Neumann. et al.
+(2020) to ensure that ^M ∈ [0, 1] holds also for the dilute limit by
+using the constrictivity β within the exponent of porosity. More
+precisely, in Neumann. et al. (2020) the following parametric
+prediction formula is proposed:
+ˆM /equals εc1+c2β m(τgeo)c3 , (11)
+where the additional constraint c1 + c2 ≥ 0 is used to ensure
+that ˆM ∈ [0, 1]. This leads to c1 /equals 1.25, c2 /equals − 1.25 and c3 /equals − 7.82.
+Finally, we consider a formula for predicting the M-factor by
+porosity as well as the mean and standard deviation of geodesic
+tortuosity of the pore space, see Barman et al. (2019) :
+ˆM /equals c1m(τgeo)c2 σ(τgeo)c3 εc4 , (12)
+where least-squaresﬁtting gives thatc1 /equals 1.18, c2 /equals − 9.17, c3 /equals 0.03
+and c4 /equals 1.02.
+Having discussed parametric formulas for predicting the
+M-factor, we now predict the permeability κ using geometric
+microstructure descriptors given in Section 2. Since the values of
+κ can cover several orders of magnitude, the ﬁtting of parameters
+is carried out on the log scale. First, we consider the prediction
+formula
+^κ /equals c
+1εc2 βc3 S− 2m(τgeo)c4 , (13)
+which has been introduced in Neumann. et al. (2020). By least-
+squares regression, we obtain that c1 /equals 0.16, c2 /equals 2.05, c3 /equals 0.64
+and c4 /equals − 7.31. Moreover, we consider still another type of a
+parametric prediction formula for κ, proposed in Neumann. et al.
+(2020). Namely,
+^κ /equals c1(c2rmin + c3rmax)2εc4 m(τgeo)c5 , (14)
+where least-squares ﬁtting gives that c1 /equals 0.24, c2 /equals 0.92, c3 /equals 0.08,
+c4 /equals 1.6 and c5 /equals − 6.82. Note that for ﬁtting the parameters in
+Eq. 14 we use the additional constraint c2, c3 ∈[0, 1] with c2 + c3 /equals
+1. Thus, we use a convex combination of rmin and rmax, which is
+subsequently squared to ensure the right unit of permeability.
+Last not least, a further parametric prediction formula for κ,
+which has been discussed in the literature, is given by
+^κ /equals c
+1εc2 S− 2m(τgeo)c3 , (15)
+see Röding et al. (2020) , where least-squares regression leads to
+c1 /equals 0.14, c2 /equals 2.07 and c3 /equals − 8.57.
+In addition to the results mentioned above, we consider the
+following prediction formula for κ:
+^κ /equals c1εc2+c3β S− 2m(τgeo)c4 , (16)
+which uses the constrictivity β within the exponent of the
+porosity ε, similar to Eq. 11 , where the ﬁtting parameters are
+given by c1 /equals 0.14, c2 /equals 3.07, c3 /equals − 1.38 and c4 /equals − 7.37.
+Furthermore, we predict κ by the porosity ε, the mean geodesic
+tortuosity m(τgeo) and the median rmin via
+^κ /equals c1εc2 m(τgeo)c3 r2
+min, (17)
+where least-squares ﬁtting on the log scale gives that c1 /equals 0.25,
+c2 /equals 1.6 and c3 /equals − 6.6. Finally, we consider a prediction
+formula for κ which involves the mean chord length m(L)o f
+t h ep o r es p a c e :
+^κ /equals c1m(L)c2 εc3 +c4βrc5
+minm(τgeo)c6 , (18)
+where we use the constraint c2 + c5 /equals 2 in order to obtain the right
+unit (voxels2), and the ﬁtting parameters are given by c1 /equals 0.1, c2 /equals
+0.63, c3 /equals 1.38, c4 /equals − 0.2, c5 /equals 1.37 and c6 /equals − 6.74.
+Regarding the prediction of effective diffusivity, the data
+visualized in the top row Figure 3 lead to the following results.
+It is interesting to observe that the problem of Eq. 10
+described in Neumann. et al. (2020) ,n a m e l yn o tf u lﬁlling
+that ^M ≈ 1 in the dilute limit ( ε → 1), does not occur, see
+Figure 3A ,s i n c eﬁtting the coef ﬁcients leads to c2 /equals 0, i.e., the
+constrictivity β is not used for predicting effective diffusivity.
+Furthermore, note that the performance of Eq. 10 is similar to
+the performance of Eqs. 11 , 12 even though the latter one does
+not involve constrictivity, see Figures 3A –C.
+In contrast to the prediction of effective diffusivity, the
+performance of the analytical prediction formulas for
+permeability signi ﬁcantly varies case by case, see Figures
+3D–I. In particular, Eq. 15 leads to the lowest predictive
+power in terms of MAPE, where the low value of the
+coefﬁcient of determination R
+2 is attributed to an
+overestimation of permeability in the regime of large
+permeability values, see Table 2 . This also holds with regard
+to Eqs. 13 , 16, which both lead to a similar MAPE of
+approximately 18 %. On the other hand, a remarkable
+improvement can be observed by disregarding constrictivity
+and including instead r
+min,a si n Eq. 17 , or a convex
+TABLE 1 | Functional dependence measure δ(x, y) between a scalar structural
+descriptor x and an effective property y.
+x/y κτ eff M
+ε 0.674 0.927 0.916
+S 0.726 0.833 0.467
+β 0.631 0.864 0.638
+rmin 0.685 0.856 0.242
+rmax 0.798 0.847 0.565
+m(τgeo) 0.474 0.964 0.851
+σ(τgeo) 0.632 0.866 0.742
+m(L) 0.900 0.872 0.614
+σ(L) 0.902 0.883 0.677
+Frontiers in Materials | www.frontiersin.org December 2021 | Volume 8 | Article 78650210
+Priﬂing et al. Mircostructure-Property Relationships for Mass Transport
+
+===== PAGE 11 =====
+combination of rmin and rmax,a si n Eq. 14, where both prediction
+formulas lead to a MAPE of approximately 15 %. However, it is
+worth mentioning that Eq. 17 only uses three adjustable
+parameters and three geometric descriptors of the underlying
+3D microstructure. In addition, the small value c
+3 /equals 0.08 of the
+parameter corresponding to rmax in Eq. 14 highlights the
+importance of the direction-dependent characteristic rmin,
+which in contrast to rmax also contains information about
+bottleneck effects. The best performance with regard to MAPE
+is obtained when additionally using the mean chord length as in
+Eq. 18 , where one has to note that this prediction formula also
+contains the highest number of parameters as well as
+microstructure descriptors. However, it is interesting to note
+that such a simple quantity as the mean chord length turns
+out to be bene ﬁcial in terms of further improving the predictive
+power see Table 2 .
+5.2 Arti ﬁcial Neural Networks
+In addition to the analytical prediction formulas Eqs. 10 –18
+presented above, we investigate artiﬁcial neural networks (ANNs)
+for the prediction of mass transport properties. Note that a
+conventional, fully-connected ANN is a composition of linear
+and nonlinear operations. The building blocks are fully-
+connected (also called dense) layers, each of which consists of
+a certain number of nodes. The input to each node is a weighted
+sum of the outputs from the nodes in the previous layer, to which
+a nonlinear so-called activation function f: R → R is applied. As
+FIGURE 3 | Prediction of effective transport properties using analytical formulas. Top row (from left to right): Prediction of M-factor via Eqs. 10–12. Middle row
+(from left to right): Prediction of permeability via Eqs. 13–15. Bottom row (from left to right): Prediction of permeability via Eqs. 16–18. Note that the scatter plots
+show results based on the test data.
+TABLE 2 | Error measures computed on the test set, corresponding to the
+analytical prediction formulas Eqs. 10 –18 for M-factor and permeability,
+respectively. Note that in case of predicting permeability, the quantity R2
+log denotes
+the coef ﬁcient of determination on the log scale.
+Equation R2 MAPE R 2
+log
+(10) 0.993 5.76 -
+(11) 0.994 5.44 -
+(12) 0.994 5.15 -
+(13) 0.218 18.94 0.985
+(14) 0.920 14.84 0.990
+(15) 0.219 21.33 0.982
+(16) 0.331 18.34 0.986
+(17) 0.915 14.81 0.990
+(18) 0.820 11.63 0.992
+Frontiers in Materials | www.frontiersin.org December 2021 | Volume 8 | Article 78650211
+Priﬂing et al. Mircostructure-Property Relationships for Mass Transport
+
+===== PAGE 12 =====
+a whole, the network describes a nonlinear mapping from some
+input to some output that can be arbitrarily complex. During
+training of an ANN, the parameters (weights of the sums) are
+optimized with respect to a loss function that penalizes deviations
+from the target output ( Schmidhuber, 2015 ).
+The ﬁrst layer is, in a sense, the input layer, the dimension of
+which depends on the set of microstructural descriptors used. The
+ﬁrst layer is followed by a certain number of fully-connected
+layers, so-called hidden layers, which are described below in more
+detail. The ﬁnal layer is the output layer, which in our case of a
+scalar output consists of a single node only. For the hidden layers,
+the exponential linear unit (Elu) activation function is used
+(Clevert et al., 2016 ), which is given by
+f(x)/equals x, if x > 0,
+c e
+x − 1() , if x ≤0,{ (19)
+where we put c /equals 1.
+We investigate 12 different sets of geometric microstructure
+descriptors, re-using all sets of descriptors considered in the
+analytical prediction formulas Eqs. 10 –18 and also adding
+new ones involving more complex descriptors like
+distributions/quantiles of e.g., geodesic tortuosity, chord length
+distributions, spherical contact distribution and the two-point
+correlation function. The descriptor sets are summarized in
+Table 3 . The inputs, i.e. the microstructure descriptors, are
+linearly rescaled such that in each case, the input data
+provided by the training set has zero mean and unit variance,
+which often improves convergence during training ( LeCun et al.,
+2012). Furthermore, the outputs are transformed in the following
+fashion. The values of M ∈(0, 1) and κ ∈(0, ∞ ) cover some orders
+of magnitude. To simplify training, the logit-transformed
+M-factor y /equals log(M/(1 − M)) and the log-transformed
+permeability y /equals log(κ) are used as the target outputs. This
+yields the bene ﬁt that the inverse-transformed predictions
+belong to (0, 1) and (0, ∞ ), respectively.
+The networks are implemented in Tensorﬂow 2.4.1 (Abadi et al.,
+2015) and optimized with respect to MSE loss (on the logit and log
+scales). Glorot/Xavier uniform initialization is used for all weights
+(Glorot et al., 2010 ), as well as stochastic gradient descent (SGD)
+with momentum ( Qian, 1999; Bottou, 2010) for optimization. A
+random search hyperparameter optimization (Bergstra and Bengio,
+2012) is performed to quantify the importance of the number of
+hidden layers, the number of nodes per layer, the batch size (in each
+update in the SGD), the momentum and the learning rate of the
+SGD. It turns out that 4 hidden layers, each with 64 nodes, is a
+reasonable choice, where the number of weights varies from 12,801
+to 27,713 depending on the dimension of the descriptor input. The
+network architecture is illustrated inFigure 4.F u r t h e r m o r e ,ab a t c h
+size of 128 and a momentum of 0.9 is chosen, but those particular
+values turned out to be not critical with regard to the performance.
+Also, we consider different kinds of regularization such as weight
+decay, i.e., l
+2 regularization (Krogh and Hertz, 1992) and dropout
+regularization (Srivastava et al., 2014), where both did not lead to any
+improvement. It is also worth mentioning that batch normalization
+(Ioffe and Szegedy, 2015), another common regularization method,
+is not investigated here because combining it with the Elu activation
+function (Clevert et al., 2016) has been found not useful. Finally, it
+turned out that the learning rate (LR) has considerable impact on the
+results. Therefore, we design an LR scheme with a step-wise
+increasing and then step-wise decreasing learning rate. More
+precisely, let LR ∈ {10
+–4.5,1 0 –4,1 0 –3.5,1 0 –3,1 0 –2.5}f o r1 , 0 0 0
+epochs (iterations over the whole training set) each, and then, we
+choose LR∈{10–2,1 0–2.5,1 0–3,1 0–3.5,1 0–4} for 4,000 epochs each. In
+total, the training procedure comprises 25,000 epochs. For each set of
+inputs, i.e., microstructural descriptors, 100 networks are trained
+using different random seeds. Note that the random seed controls
+the weight initializations in the network as well as the shuf ﬂing of
+data in the SGD. The model yielding the minimal validation loss
+(over all epochs and all runs) for each set of microstructural
+descriptors is selected. On a single NVIDIA T4 GPU, the
+average execution time for each run is 3.7 h.
+Scatter plots visualizing the prediction results for M-factor and
+permeability are shown in Figures 5 , 6, respectively.
+Furthermore, error measures for the prediction of M-factor
+and permeability are shown in Tables 4 and 5, respectively. It
+TABLE 3 | Descriptor sets used as input for the ANNs, together with the
+dimensions of the corresponding input vectors. Note that Models 8, 9 and 10
+involve four scalar quanities and one distributional characteristic described by 19
+quantiles, whereas the two-point correlation function in Model 1 is evaluated for
+168 different radii.
+Model Descriptors Dimension
+1 ε, S, m(τ
+geo)3
+2 ε, S, m(τgeo), β 4
+3 ε, m(τgeo), σ(τgeo)3
+4 ε, m(τgeo), β 3
+5 ε, m(τgeo), rmin 3
+6 ε, m(τgeo), rmin, rmax 4
+7 ε, m(τgeo), rmin, β, m(L)5
+8 ε, S, m(τgeo), σ(τgeo), d(τgeo)2 3
+9 ε, S, m(L), σ(L), d(L)2 3
+10 ε, S, m(H), σ(H), d(H)2 3
+11 ε, S, C 170
+12 all 236
+FIGURE 4 | Illustration of the ANN architecture with 4 hidden layers,
+each with 64 nodes, where only a smaller number of nodes is shown in this
+ﬁgure for clarity. Furthermore, the input in this ﬁgure is 5-dimensional, but in the
+present paper the input dimension varies from 3 to 236, see Table 3 .
+Frontiers in Materials | www.frontiersin.org December 2021 | Volume 8 | Article 78650212
+Priﬂing et al. Mircostructure-Property Relationships for Mass Transport
+
+===== PAGE 13 =====
+turns out that the predictions obtained by ANNs are consistently
+better than those obtained by the analytical prediction formulas
+considered in Section 5.1, when the same descriptors are used as
+input. In addition, adding more complex descriptors like
+quantiles (of tortuosity, etc.) improves the results even further.
+Unsurprisingly, the best results are obtained using all the
+computed descriptors.
+Note that some of the ANN models (Models 1 –7i n Table 3 )
+involve exactly the same sets of descriptors as input which are
+used in the analytical models for the prediction of M and/or κ.
+Not surprisingly, the ANNs outperform the corresponding
+analytical prediction formulas (with the same descriptor sets)
+in all cases in terms of MAPE evaluated on the test set.
+Furthermore, in the case of geodesic tortuosity τ
+geo,t h e r e
+are clear improvements when adding more detailed
+information on the distribution of τ
+geo, i.e., starting with ϵ,
+m(τgeo), σ(τgeo) and then adding 19 quantiles of d(τgeo), the
+MAPE is reduced from 3.84 to 3.38% for the M-factor, and
+from 29.25 to 10.01% for permeability. Also, descriptor sets
+involving detailed information on the distributions of chord
+FIGURE 5 | Prediction of M-factor using ANNs. Top row (from left to right): Prediction of M via Models 1–3. Second row (from left to right): Prediction of M via
+Models 4–6. Third row (from left to right): Prediction of M via Models 7–9. Bottom row (from left to right): Prediction of M via Models 10–12. Note that the scatter plots
+show results based on the test data.
+Frontiers in Materials | www.frontiersin.org December 2021 | Volume 8 | Article 78650213
+Priﬂing et al. Mircostructure-Property Relationships for Mass Transport
+
+===== PAGE 14 =====
+lengths and spherical contact distances perform well. With
+regard to the prediction of the M-factor, these high-
+dimensional descriptors perform better than the ANN
+model (no. 10 in Table 3 ) involving the two-point
+correlation function. However, for the prediction of
+permeability, the ANN model involving the two-point
+correlation function performs better than the model (no. 8)
+involving the distribution of tortuosity.
+Note that the Models 3 and 4 which do not use neither r
+min nor
+the speci ﬁc surface area S, perform substantially worse than all
+other models with regard to permeability. Not surprisingly,
+including all descriptors (Model 12) yields the best
+performance for predicting both M and κ. However,
+comparing models with low-dimensional (Models 1 –7) and
+high-dimensional (Models 8 –12) descriptor sets, the best low-
+dimensional descriptor (Model 7) gives very good performance.
+In particular, going from 5 to 236 input dimensions reduces the
+MAPE from 2.74 to 2.03% for M and from 7.47 to 6.51% with
+regard to κ. Considering that this reduction in error requires a
+massive reduction in interpretability of the model, it is not
+obvious how to make this trade-off between model complexity
+and performance.
+FIGURE 6 | Prediction of permeability using ANNs. Top row (from left to right): Prediction of κ via Models 1–3. Second row (from left to right): Prediction of κ via
+Models 4–6. Third row (from left to right): Prediction of κ via Models 7–9. Bottom row (from left to right): Prediction of κ via Models 10–12. Note that the scatter plots
+show results based on the test data.
+Frontiers in Materials | www.frontiersin.org December 2021 | Volume 8 | Article 78650214
+Priﬂing et al. Mircostructure-Property Relationships for Mass Transport
+
+===== PAGE 15 =====
+5.3 Convolutional Neural Networks
+In a CNN, as opposed to a conventional ANN, the main
+building blocks are convolutional layers. A typical CNN
+architecture comprises convolutional layers, pooling layers,
+and fully-connected layers. In the convolutional layers, the
+input is convolved with several convolution kernels, whose
+entries are trainable parameter s. The convolutions themselves
+are linear operations, but a nonlinear activation function
+f: R → R is applied to the result to produce the outputs,
+called feature maps. In the pool ing layers, the feature maps
+are downsampled by computing, e.g., the mean or maximum
+on small (typically non-overlapping) patches of the feature
+maps from the preceding layer, reducing the resolution such
+that the next convolutional layer can extract information from
+another spatial scale. After the convolutional and pooling
+layers, fully-connected layers are typically used to obtain a
+scalar output. The ﬁr s tp a r to ft h eC N Nc a nb et h o u g h to fa sa
+feature extractor that produces geometrical features which are
+qualitatively similar to the ones used for the analytical
+prediction formulas and ANNs considered in the previous
+sections of this paper, wherea s the second part corresponds
+directly to the ANNs themselves.
+The size of the microstructures themselves is too large to be
+practically feasible from a computational point of view.
+Therefore, we downsample to half the size in all directions
+by averaging. The result is a 96
+3 array for each structure with
+values in {0, ... , 8} stored as 8-bit unsigned integers. Apart
+from a linear scaling factor, this preprocessing step is
+equivalent to having an average pooling ﬁlter with a 2 ×
+2 × 2w i n d o wa st h e ﬁrst layer in the CNN. Preprocessing
+t h es t r u c t u r e si nt h i sm a n n e ra l l o w sf o ral a r g e rb a t c hs i z e
+without running out of GPU memory. During training, the
+input arrays are batch-wise converted to 32-bit ﬂoating point
+precision and rescaled to [ − 1/2, 1/2] prior to the gradient
+update. The outputs are transformed in the same way as for the
+ANNs. The ﬁrst part of the CNN consists of three
+convolutional blocks, each with two convolutional layers
+with Elu activations and one average pooling layer. The
+convolutional layers use 3 × 3 × 3 kernels, and the number
+of ﬁlters, i.e. kernels, used is 16, 32, and 64 in the respective
+blocks. The average pooling layers use 2 × 2 × 2w i n d o w s .T h e
+second part of the CNN consists of 4 fully-connected layers
+with Elu activations, each with 64 nodes, i.e. the same as for the
+ANNs considered in the previous section. The total number of
+weights is 2,324,689. The network architecture is illustrated in
+Figure 7 .
+The weight initialization procedure, optimizer, and
+momentum are the same as for ANNs. However, the batch
+size is 16 and the learning rate (LR) schedule is also different:
+Let LR ∈ {10
+–4,1 0 –3.75,1 0 –3.5,1 0 –3.25} for 25 epochs each, then
+LR /equals 10–3 for 100 epochs, and ﬁnally LR ∈ {10–3.25,1 0 –3.5,
+10–3.75,1 0 –4} for 50 epochs each, in total comprising 400
+epochs. In contrast to ANNs , we now introduce a data
+augmentation scheme for the training data, involving
+random ﬂips, rotations, and circular shifts of the structure
+array in both dimensions orthogonal to the mass transport
+direction. The mass transport is invariant with respect to these
+transformations such that a data augmentation scheme like this
+will act as a regularizer that increases the generalization
+performance of the network ( Hernández-García et al., 2018 ).
+On a single NVIDIA V100 GPU, the average execution time is
+140 h. The model yielding the minimal validation loss over all
+epochs is selected. Because of the large computational workload
+for CNNs, we do only one run for M-factor and one for
+permeability.
+In addition to this ordinary CNN, we train the same
+architecture with a different kind of input data. Instead of
+using the structure arrays, we compute the Euclidean distance
+transform in the pore space which effectively comprises a
+spatial map of local pore sizes ( Russ, 2007 ). To the best of
+our knowledge, this approach of using the distance transform
+as a representation of the pore space has not been used before
+as inputs to a CNN, where these inputs are again rescaled to
+96
+3 arrays. The only differences compared to the ordinary
+CNN are that the input data has to be stored in 32-bit ﬂoating
+point precision (leading to high demands in storage space, ∼
+320 GB for training, validation, and test) and that the data are
+TABLE 4 | Error measures for the prediction of M via ANNs where MSE is given for
+the training, validation and test sets, and MAPE for the test set. Note that MSE
+is evaluated on the logit scale and MAPE on the linear scale.
+MSE MAPE (in %)
+Model Training Validation Test Test
+1 0.0073 0.0077 0.0075 3.55
+2 0.0055 0.0064 0.0062 3.07
+3 0.0081 0.0084 0.0084 3.84
+4 0.0075 0.0089 0.0089 4.03
+5 0.0067 0.0069 0.0076 3.59
+6 0.0053 0.0061 0.0065 3.10
+7 0.0043 0.0055 0.0054 2.74
+8 0.0062 0.0068 0.0071 3.38
+9 0.0061 0.0073 0.0078 3.25
+10 0.0063 0.0080 0.0077 3.03
+11 0.0077 0.0102 0.0103 3.66
+12 0.0021 0.0037 0.0034 2.03
+TABLE 5 | Error measures for the prediction of κ via ANNs, where MSE is given for
+the training, validation and test sets, and MAPE for the test set. Note that MSE
+is evaluated on the logit scale and MAPE on the linear scale.
+MSE MAPE (in %)
+Model Training Validation Test Test
+1 0.0241 0.0296 0.0298 10.99
+2 0.0176 0.0227 0.0225 9.44
+3 0.1387 0.1473 0.1491 29.25
+4 0.6256 0.6815 0.6830 76.63
+5 0.0206 0.0236 0.0240 10.35
+6 0.0164 0.0211 0.0214 9.31
+7 0.0132 0.0176 0.0163 7.47
+8 0.0181 0.0247 0.0236 10.01
+9 0.0114 0.0174 0.0170 7.39
+10 0.0180 0.0228 0.0208 8.49
+11 0.0203 0.0254 0.0243 9.51
+12 0.0069 0.0131 0.0140 6.51
+Frontiers in Materials | www.frontiersin.org December 2021 | Volume 8 | Article 78650215
+Priﬂing et al. Mircostructure-Property Relationships for Mass Transport
+
+===== PAGE 16 =====
+batch-wise rescaled by a factor 1/24 (the 95%-quantile of the
+distance transform values is approximately 24).
+Scatter plots visualizing the prediction results for M-factor
+and permeability are shown in Figure 8 .F u r t h e r m o r e ,e r r o r
+measures are shown in Table 6 for both M and κ and for both
+the ordinary CNN (brie ﬂy denoted by CNN) and the
+distance-transform CNN (de noted by DT-CNN). As can be
+seen, all CNNs perform better than their best ANN
+counterparts, the best models attaining 1.65% (M-factor)
+and 3.78% (permeability) MA PE, although this is at the
+expense of even less interpretability than for the highest-
+dimensional descriptor used for the ANNs. Also, the
+differences between the ordinary CNN and the DT-CNN
+are not substantial and neither one of them is consistently
+better. This is possibly because the ordinary CNN learns
+similar information as that already supplied to the DT-
+FIGURE 7 | Illustration of the CNN architecture. The inputs, arrays of size 96 3, are fed into the convolutional part of the network, consisting of three convolutional
+blocks, each in turn consisting of two convolutional layers (the numbers of ﬁlters are indicated in the ﬁgure) followed by an average pooling layer. The feature maps
+produced as output from the convolutional part are passed to 4 fully-connected layers with 64 nodes each.
+FIGURE 8 | Prediction results using different CNNs, showing (A) prediction of M using an ordinary CNN, (B) prediction of M using a DT-CNN, (C) prediction of κ
+using an ordinary CNN, and (D) prediction of κ using a DT-CNN. Note that the scatter plots show results based on the test data.
+Frontiers in Materials | www.frontiersin.org December 2021 | Volume 8 | Article 78650216
+Priﬂing et al. Mircostructure-Property Relationships for Mass Transport
+
+===== PAGE 17 =====
+CNN. Hence, we conclude that given the increased
+computational workload of the distance tran sform, there
+are at least no substantial bene ﬁts of using the DT-CNN
+over the ordinary CNN.
+6 CONCLUSION
+We investigate microstructure-property relationships for
+artiﬁcially generated porous materials, developing prediction
+models for diffusivity and permeability based on the geometry
+of the pore space. The basis for this is a comprehensive dataset
+of 90,000 structures with size of 192
+3 voxels, which are
+generated by 9 different sto chastic 3D microstructure
+models. To the best of our knowledge, this is the largest
+and most diverse dataset for studying diffusivity and
+permeability published so far in the literature.
+Microstructural descriptors like porosity, speci ﬁcs u r f a c e
+area, tortuosity and its distribution, constrictivity, spherical
+contact distributions, chord length distribution and two-point
+correlation functions are used in various combinations as
+input to both analytical prediction formulas and arti ﬁcial
+neural networks (ANNs). Furthermore, the structure itself
+as well as a distance transform in the pore space, capturing
+the shortest distance to the solid phase, is used as input to
+convolutional neural networks (CNNs). In terms of mean
+absolute percentage error (MAPE), the best analytical
+models attain 5.15% (diffusivity) and 11.63% (permeability)
+error. The ANNs outperform the analytical prediction
+formulas with the same inputs, which indicates that the
+microstructure-property relationships are more complex
+and nonlinear than can be expressed through simple
+analytical models. In addition, ANNs can naturally
+incorporate high-dimensional descriptors like distributions
+(which haven been characterized by quantiles), and
+correlation functions. The best ANN models attain a MAPE
+of 2.03% (diffusivity) and 6.51% (permeability). However, one
+downside of ANNs is that their results are not as interpretable
+as those based on analytical prediction formulas. Furthermore,
+the CNNs outperform the best-performing ANNs, where the
+best CNN models attain 1.65% (diffusivity) and 3.78%
+(permeability) MAPE. This comes at the price of a
+signi ﬁcant increase in training time and use of
+computational resources, and yet another decrease in
+interpretability of the results. The fact that the prediction
+quality of best-performing ANNs comes at least reasonably
+close to that of CNNs indicates that the microstructural
+descriptors considered in this paper strongly in ﬂuence mass
+transport and are thus suitable for predicting diffusivity and
+permeability. To our knowledge, analytical prediction
+formulas, ANNs, and CNNs have not been compared
+quantitatively on the same dataset before, and in particular
+not on such a large and diverse dataset. To facilitate further
+development of microstructure-property relationships, we
+make the arti ﬁcially generated microstructures, their
+descriptors, and the code used to study the relationships
+between them available open access ( Priﬂing et al., 2021c ).
+DATA AVAILABILITY STATEMENT
+The microstructures, descriptors, and the code used to study
+microstructure-property relationships are available open access
+via the following Zenodo repository: https://zenodo.org/record/
+4047774, see Priﬂing et al. (2021c) .
+AUTHOR CONTRIBUTIONS
+BP, MR and MN generated the data and performed the analysis of
+microstructure-property relationships. PT developed the
+microstructure model for ﬁber and channel systems. All
+authors discussed the results and contributed to writing the
+paper. VS designed and supervised the research.
+FUNDING
+The ﬁnancial support of the Swedish Research Council for
+Sustainable Development (grant number 2019-01295) and the
+Swedish Research Council (grant number 2016 –03809) is
+acknowledged. Furthermore, the presented work was
+ﬁnancially supported by the Bundesministerium für
+Bildung und Forschung (BMBF) within the project
+HiStructures under the grant number 03XP0243D as well
+as by the Deutsche Forschungsgemeinschaft (DFG) under
+the grant number SCHM997/39-1. The computations were
+in part performed on resources at Chalmers Centre for
+Computational Science and Engineering (C3SE) provided
+by the Swedish National Infrastructure for Computing
+(SNIC). A GPU used for part of this research was donated
+by the NVIDIA Corporation.
+ACKNOWLEDGMENTS
+Victor Wåhlstrand Skärström is acknowledged for assistance with
+implementing the convolutional neural networks.
+TABLE 6 | Error measures for the prediction of M and κ via ordinary CNN and
+DT-CNN where MSE is given for the training, validation and test sets, and
+MAPE for the test set. Note that MSE is evaluated on the logit scale for M and log
+scale for κ, and MAPE on the linear scale.
+MSE MAPE
+(in %)
+Model Property Training Validation Test Test
+CNN M 0.0016 0.0023 0.0020 1.65
+DT-CNN M 0.0020 0.0028 0.0022 1.87
+CNN κ 0.0033 0.0059 0.0050 4.33
+DT-CNN κ 0.0027 0.0053 0.0043 3.78
+Frontiers in Materials | www.frontiersin.org December 2021 | Volume 8 | Article 78650217
+Priﬂing et al. Mircostructure-Property Relationships for Mass Transport
+
+===== PAGE 18 =====
+REFERENCES
+Abadi, M., Agarwal, A., Barham, P., Brevdo, E., Chen, Z., Citro, C., et al. (2015).
+TensorFlow: Large-Scale Machine Learning on Heterogeneous Systems.
+Available at: tensorlow.org (Accessed September 29, 2021).
+Abdallah, B., Willot, F., and Jeulin, D. (2016). Morphological Modelling of Three-
+phase Microstructures of Anode Layers Using SEM Images. J. Microsc. 263,
+51–63. doi:10.1111/jmi.12374
+Allen, J., Weddle, P. J., Verma, A., Mallarapu, A., Usseglio-Viretta, F., Finegan, D.
+P., et al. (2021). Quantifying the In ﬂuence of Charge Rate and Cathode-Particle
+Architectures on Degradation of Li-Ion Cells through 3D Continuum-Level
+Damage Models. J. Power Sourc. 512, 230415. doi:10.1016/
+j.jpowsour.2021.230415
+Araya-Polo, M., Alpak, F. O., Hunter, S., Hofmann, R., and Saxena, N. (2019). Deep
+Learning-Driven Permeability Estimation from 2D Images. Comput. Geosci. 24,
+571–580. doi:10.1007/s10596-019-09886-9
+Barman, S., Rootzén, H., and Bolin, D. (2019). Prediction of Diffusive Transport
+through Polymer Films from Characteristics of the Pore Geometry. AIChE J. 65,
+446–457. doi:10.1002/aic.16391
+Bear, J. (2018). Modeling Phenomena of Flow and Transport in Porous Media.
+Theory and Applications of Transport in Porous Media . Cham: Springer.
+Bergstra, J., and Bengio, Y. (2012). Random Search for Hyper-Parameter
+Optimization. J. Mach. Learn. Res. 13, 281 –305.
+Berryman, J. G. (1985). Bounds on Fluid Permeability for Viscous Flow through
+Porous media. J. Chem. Phys. 82, 1459 –1467. doi:10.1063/1.448420
+Bertei, A., Chueh, C.-C., Pharoah, J. G., and Nicolella, C. (2014). Modi ﬁed
+Collective Rearrangement Sphere-Assembly Algorithm for Random Packings
+of Nonspherical Particles: Towards Engineering Applications. Powder Tech.
+253, 311 –324. doi:10.1016/j.powtec.2013.11.034
+Bezanson, J., Edelman, A., Karpinski, S., and Shah, V. B. (2017). Julia: A Fresh
+Approach to Numerical Computing. SIAM Rev. 59, 65 –98. doi:10.1137/
+141000671
+Birkholz, O., Neumann, M., Schmidt, V., and Kamlah, M. (2021). Statistical
+Investigation of Structural and Transport Properties of Densely-Packed
+Assemblies of Overlapping Spheres Using the Resistor Network Method.
+Powder Tech. 378, 659 –666. doi:10.1016/j.powtec.2020.09.056
+Bottou, L. (2010). “Large-scale Machine Learni ng with Stochastic Gradient
+Descent, ” in Proceedings of COMPSTAT ’2010, Paris, France, August
+22–27, 2021 (Paris: Springer), 177 –186. doi:10.1007/978-3-7908-
+2604-3_16
+Brooks, S., Gelman, A., Jones, G., and Meng, X. (2011). Handbook of Markov Chain
+Monte Carlo. Chapman & Hall/CRC Handbooks of Modern Statistical Methods .
+Boca Raton: CRC Press.
+Byrd, R. H., Gilbert, J. C., and Nocedal, J. (2000). A Trust Region Method Based on
+Interior Point Techniques for Nonlinear Programming. Math. Program. 89,
+149–185. doi:10.1007/pl00011391
+Carman, P. (1937). Fluid Flow through Granular Beds. Trans. Inst. Chem. Eng. 15,
+150–166.
+Chiu, S. N., Stoyan, D., Kendall, W. S., and Mecke, J. (2013).
+Stochastic Geometry
+and its Applications . 3rd ed. Chichester: J. Wiley & Sons.
+Clennell, M. B. (1997). Tortuosity: A Guide through the Maze. Geol. Soc. Lond.
+Spec. Publications 122, 299 –344. doi:10.1144/gsl.sp.1997.122.01.18
+Clevert, D.-A., Unterthiner, T., and Hochreiter, S. (2016). “Fast and Accurate
+D e e pN e t w o r kL e a r n i n gb yE x p o n e n t i a lL i n e a rU n i t s( E l u s ) ,” in 4th
+International Conference on Learning Representations, ICLR 2016, San
+Juan, Puerto Rico, May 2-4, 2016. Editors Y. Bengio and Y. LeCun.
+Conference Track Proceedings.
+Coleman, T. F., and Li, Y. (1996). An Interior Trust Region Approach for
+Nonlinear Minimization Subject to Bounds. SIAM J. Optim. 6, 418 –445.
+doi:10.1137/0806023
+Coleman, T. F., and Li, Y. (1994). On the Convergence of Interior-Re ﬂective
+Newton Methods for Nonlinear Minimization Subject to Bounds. Math.
+Programming 67, 189 –224. doi:10.1007/bf01582221
+Cooper, S. J., Bertei, A., Shearing, P. R., Kilner, J. A., and Brandon, N. P. (2016).
+TauFactor: An Open-Source Applicat ion for Calculating Tortuosity
+Factors from Tomographic Data. SoftwareX 5, 203 –210. doi:10.1016/
+j.softx.2016.09.002
+Cooper, S. J., Kishimoto, M., Tariq, F., Bradley, R. S., Marquis, A. J., Brandon, N. P.,
+et al. (2013). Microstructural Analysis of an LSCF Cathode Using In Situ
+Tomography and Simulation. ECS Trans. 57, 2671 –2678. doi:10.1149/
+05701.2671ecst
+Cybenko, G. (1989). Approximation by Superpositions of a Sigmoidal Function.
+Math. Control. Signal. Syst. 2, 303 –314. doi:10.1007/bf02551274
+Daley, D. J., and Vere-Jones, D. (2005). An Introduction to the Theory of
+Point Processes I, Elementary Theory and Methods .2 n de d .N e wY o r k :
+Springer.
+Daley, D. J., and Vere-Jones, D. (2008). An Introduction to the Theory of
+Point Processes II, General Theory and Structure .2 n de d .N e wY o r k :
+Springer.
+Ditscherlein, R., Furat, O., Löwer, E., Mehnert, R., Trunk, R., Leißner, T.,
+et al. (2021). PARROT - A Pilot Study on the Open Access Provision of
+Particle Discrete Tomographic Datasets. Microsc. Microanal. (under
+revision).
+Dunn, A., Wang, Q., Ganose, A., Dopp, D., and Jain, A. (2020). “Benchmarking
+Materials Property Prediction Methods: The Matbench Test Set and
+Automatminer Reference Algorithm. Npj Comput. Mater. 6, 138.
+doi:10.1038/s41524-020-00406-3
+Feinauer, J., Brereton, T., Spettl, A., Weber, M., Manke, I., and Schmidt, V. (2015).
+Stochastic 3D Modeling of the Microstructure of Lithium-Ion Battery Anodes
+via Gaussian Random ﬁelds on the Sphere. Comput. Mater. Sci. 109, 137–146.
+doi:10.1016/j.commatsci.2015.06.025
+Furat, O., Petrich, L., Finegan, D. P., Diercks, D., Usseglio-Viretta, F., Smith, K.,
+et al. (2021). Arti ﬁcial Generation of Representative Single Li-Ion Electrode
+Particle Architectures from Microscopy Data. Npj Comput. Mater. 7, 105.
+doi:10.1038/s41524-021-00567-9
+Gaiselmann, G., Neumann, M., Schmidt, V., Pecho, O., Hocker, T., and Holzer, L.
+(2014). Quantitative Relationships between Microstructure and Effective
+Transport Properties Based on Virtual Materials Testing. AIChE J. 60,
+1983–
+1999. doi:10.1002/aic.14416
+Gallier, J. (2000). Curves and Surfaces in Geometric Modelling: Theory and
+Algorithms. San Francisco: Morgan Kaufmann.
+Gebäck, T., and Heintz, A. (2014). A Lattice Boltzmann Method for the Advection-
+Diffusion Equation with Neumann Boundary Conditions. Commun. Comput.
+Phys. 15, 487 –505. doi:10.4208/cicp.161112.230713a
+Gebäck, T., Marucci, M., Boissier, C., Arnehed, J., and Heintz, A. (2015).
+Investigation of the Effect of the Tortuous Pore Structure on Water
+Diffusion through a Polymer Film Using Lattice Boltzmann Simulations.
+J. Phys. Chem. B. 119, 5220 –5227. doi:10.1021/acs.jpcb.5b01953
+Ghanbarian, B., Hunt, A. G., Ewing, R. P., and Sahimi, M. (2013). Tortuosity in
+Porous Media: A Critical Review. Soil Sci. Soc. America J. 77, 1461 –1477.
+doi:10.2136/sssaj2012.0435
+Ginzburg, I., Verhaeghe, F., and Humières, D. d. (2008). Study of Simple
+Hydrodynamic Solutions with the Two-Relaxation-Times Lattice Boltzmann
+Scheme. Commun. Comput. Phys. 3, 519 –581.
+Glorot, X., and Bengio, Y. (2010). “Understanding the Dif ﬁculty of Training
+Deep Feedforward Neural Networks, ” in Proceedings of the Thirteenth
+International Conference on Arti ﬁcial Intelligence and Statistics,
+Sardinia, Italy, May 13 –15, 2010. Editors Y. W. Teh and
+M. Titterington, 249 –256.
+Gonzalez, R. C., and Woods, R. E. (2008). Digital Image Processing . 3rd ed. New
+Jersey: Prentice-Hall.
+Graczyk, K. M., and Matyka, M. (2020). Predicting Porosity, Permeability, and
+Tortuosity of Porous media from Images by Deep Learning. Sci. Rep. 10, 21488.
+doi:10.1038/s41598-020-78415-x
+Hein, S., Danner, T., Westhoff, D., Pri ﬂing, B., Scurtu, R., Kremer, L., et al. (2020).
+“Inﬂuence of Conductive Additives and Binder on the Impedance of Lithium-
+Ion Battery Electrodes: Effect of Morphology. J. Electrochem. Soc. 176, 013546.
+doi:10.1149/1945-7111/ab6b1d
+Hein, S., Feinauer, J., Westhoff, D., Manke, I., Schmidt, V., and Latz, A. (2016).
+Stochastic Microstructure Modeling and Electrochemical Simulation of
+Lithium-Ion Cell Anodes in 3D. J. Power Sourc. 336, 161 –171. doi:10.1016/
+j.jpowsour.2016.10.057
+Hernández-García, A., and König, P. (2018). Further Advantages of Data
+Augmentation on Convolutional Neural Networks . Editors V. K ůrková,
+Y. Manolopoulos, B. Hammer, L. Iliadis, and I. Maglogiannis (Cham:
+Frontiers in Materials | www.frontiersin.org December 2021 | Volume 8 | Article 78650218
+Priﬂing et al. Mircostructure-Property Relationships for Mass Transport
+
+===== PAGE 19 =====
+Springer International Publishing), 95 –103. doi:10.1007/978-3-030-
+01418-6_10
+Hlushkou, D., Liasneuski, H., Tallarek, U., and Torquato, S. (2015). Effective
+Diffusion Coefﬁcients in Random Packings of Polydisperse Hard Spheres from
+Two-point and Three-point Correlation Functions. J. Appl. Phys. 118, 124901.
+doi:10.1063/1.4931153
+Holzer, L., Marmet, P., Keller, L., Fingerle, M., Wiegmann, A., Neumann, M., et al.
+(2021), Review of Tortuosity: Classical Theories and Modern Methods.
+Working paper (under preparation).
+Hoffmann, T., and Gastreich, M. (2019). The Next Level in Chemical Space
+Navigation: Going Far beyond Enumerable Compound Libraries. Drug Discov.
+Today 24, 1148 –1156. doi:10.1016/j.drudis.2019.02.013
+Holzer, L., Wiedenmann, D., Münch, B., Keller, L., Prestat, M., Gasser, P., et al.
+(2013). The Inﬂuence of Constrictivity on the Effective Transport Properties of
+Porous Layers in Electrolysis and Fuel Cells. J. Mater. Sci. 48, 2934 –2952.
+doi:10.1007/s10853-012-6968-z
+Hornik, K., Stinchcombe, M., and White, H. (1989). Multilayer Feedforward
+Networks Are Universal Approximators. Neural Networks 2, 359 –366.
+doi:10.1016/0893-6080(89)90020-8
+Hoshen, J., and Kopelman, R. (1976). Percolation and Cluster Distribution. I.
+Cluster Multiple Labeling Technique and Critical Concentration Algorithm.
+Phys. Rev. B. 14, 3438 –3445. doi:10.1103/physrevb.14.3438
+Ioffe, S., and Szegedy, C. (2015). “Batch Normalization: Accelerating Deep
+Network Training by Reducing Internal Covariate Shift, ” in Proceedings of
+the 32nd International Conference on Machine Learning, vol. 37 of ICML15,
+Lille, France, July 7 –9, 2015, 448 –456.
+Jeulin, D. (2021). Morphological Models of Random Structures. Interdisciplinary
+Applied Mathematics . Cham: Springer.
+Jiao, Y., and Torquato, S. (2012). Quantitative Characterization of the
+Microstructure and Transport Properties of Biopolymer Networks. Phys.
+Biol. 9, 036009. doi:10.1088/1478-3975/9/3/036009
+Jungnickel, D. (2007). Graphs, Networks and Algorithms. (Algorithms and
+Computation in Mathematics) . 3rd ed. Berlin: Springer.
+Kamrava, S., Tahmasebi, P., and Sahimi, M. (2020). Linking Morphology of Porous
+Media to Their Macroscopic Permeability by Deep Learning. Transp Porous
+Med. 131, 427 –448. doi:10.1007/s11242-019-01352-5
+Kaviany, M. (2012). Principles of Heat Transfer in Porous Media . 2nd ed. New
+York: Springer.
+Kawaguchi, M., Tanabe, K., Yamada, K., Sawa, T., Hasegawa, S., Hayashi, M., et al.
+(2021). Determination of the Dzyaloshinskii-Moriya Interaction Using Pattern
+Recognition and Machine Learning. Npj Comput. Mater. 7, 20. doi:10.1038/
+s41524-020-00485-2
+Kehrwald, D., Shearing, P. R., Brandon, N. P., Sinha, P. K., and Harris, S. J. (2011).
+Local Tortuosity Inhomogeneities in a Lithium Battery Composite Electrode.
+J. Electrochem. Soc. 158, A1393 –A1399. doi:10.1149/2.079112jes
+Kozeny, J. (1927). Über kapillare Leitung des Wassers im Boden: Aufstieg,
+Versickerung und Anwendung auf die Bewässerung. Sitz. Ber. Akad. Wiss,
+Wien, Math. Nat. 136, 271 –306.
+Kremer, L. S., Danner, T., Hein, S., Hoffmann, A., Pri ﬂing, B., Schmidt, V., et al.
+(2020). Inﬂuence of the Electrolyte Salt Concentration on the Rate Capability of
+Ultra-Thick NCM 622 Electrodes. Batteries. Supercaps 3, 1172 –1182.
+doi:10.1002/batt.202000098
+Krogh, A., and Hertz, J. (1992). “A Simple Weight Decay Can Improve
+Generalization,” in Proceedings of the 4th International Conference on
+Neural Information Processing Systems, Denver, Colorado, December 2 –5,
+1991, 950 –957.
+Krüger, T., Kusumaatmaja, H., Kuzmin, A., Shardt, O., Silva, G., and Viggen, E. M.
+(2017). The Lattice Boltzmann Method – Principles and Practice . Cham:
+Springer.
+Lang, A., and Potthoff, J. (2011). Fast Simulation of Gaussian Random Fields.
+Monte Carlo Methods Appl. 17, 195 –214. doi:10.1515/mcma.2011.009
+Lantuéjoul, C. (2002). Geostatistical Simulation: Models and Algorithms . Berlin:
+Springer.
+Lantuéjoul, C., and Maisonneuve, F. (1984). Geodesic Methods in Quantitative
+Image Analysis. Pattern Recognition 17, 177 –187. doi:10.1016/0031-3203(84)
+90057-8
+Last, G., and Penrose, M. (2017). Lectures on the Poisson Process . Cambridge:
+Cambridge University Press.
+LeCun, Y. A., Bottou, L., Orr, G. B., and Müller, K.-R. (2012), “Efﬁcient
+BackProp, ” in Neural Networks: Tricks of the Trade ,2 n de d .E d i t o r s
+G .M o n t a v o n ,G .B .O r r ,a n dK . - R .M ü l l e r( B e r l i n :S p r i n g e r ) ,9–48.
+doi:10.1007/978-3-642-35289-8_3
+L i a s n e u s k i ,H . ,H l u s h k o u ,D . ,K h i r e v i c h ,S . ,H ö l t z e l ,A . ,T a l l a r e k ,U . ,a n d
+Torquato, S. (2014). Impact of Microstructure on the Effective Diffusivity
+in Random Packings of Hard Spheres. J. Appl. Phys. 116, 034904.
+doi:10.1063/1.4889821
+Lifshitz, I. M., and Slyozov, V. V. (1961). The Kinetics of Precipitation from
+Supersaturated Solid Solutions. J. Phys. Chem. Sol. 19, 35–50. doi:10.1016/0022-
+3697(61)90054-3
+Ma, Z., and Torquato, S. (2018). Precise Algorithms to Compute Surface
+Correlation Functions of Two-phase Heterogeneous Media and Their
+Applications. Phys. Rev. E. 98, 013307. doi:10.1103/PhysRevE.98.013307
+Mardia, K., and Jupp, P. (1999). Directional Statistics . Chichester: J. Wiley &
+Sons.
+Masaro, L., and Zhu, X. X. (1999). Physical Models of Diffusion for Polymer
+Solutions, Gels and Solids. Prog. Polym. Sci. 24, 731 –775. doi:10.1016/s0079-
+6700(99)00016-7
+Matheron, G. (1975). Random Sets and Integral Geometry . New York: J. Wiley &
+Sons.
+Matlab (2021). Matlab, Version R2021a . Natick, Massachusetts: The
+MathWorks Inc.
+Maurer, C. R., Rensheng Qi, R., and Raghavan, V. (2003). A Linear Time Algorithm
+for Computing Exact Euclidean Distance Transforms of Binary Images in
+Arbitrary Dimensions. IEEE Trans. Pattern Anal. Machine Intell. 25, 265–270.
+doi:10.1109/tpami.2003.1177156
+Mayer, J. (2004). A Time-Optimal Algorithm for the Estimation of Contact
+Distribution Functions of Random Closed Sets. Image Anal. Stereol. 23,
+177–183. doi:10.5566/ias.v23.p177-183
+Mayer, J., Schmidt, V., and Schweiggert, F. (2004). A Uni ﬁed Simulation
+Framework for Spatial Stochastic Models. Simulation Model. Pract. Theor.
+12, 307 –326. doi:10.1016/j.simpat.2004.02.001
+Miranville, A. (2019). The Cahn –Hilliard Equation: Recent Advances and
+Applications. Philadelphia: SIAM.
+Moussaoui, H., Laurencin, J., Gavet, Y., Delette, G., Hubert, M., Cloetens, P., et al.
+(2018). Stochastic Geometrical Modeling of Solid Oxide Cells Electrodes
+Validated on 3D Reconstructions. Comput. Mater. Sci. 143, 262 –276.
+doi:10.1016/j.commatsci.2017.11.015
+Münch, B., and Holzer, L. (2008). Contradicting Geometrical Concepts in Pore Size
+Analysis Attained with Electron Microscopy and Mercury Intrusion. Society 91,
+4059–4067. doi:10.1111/j.1551-2916.2008.02736.x
+Nellis, G., and Klein, S. (2009). Heat Transfer . New York: Cambridge University
+Press.
+Neumann, M., Hirsch, C., Staněk, J., Beneš, V., and Schmidt, V. (2019). Estimation
+of Geodesic Tortuosity and Constrictivity in Stationary Random Closed Sets.
+Scand. J. Statist. 46, 848 –884. doi:10.1111/sjos.12375
+Neumann, M., Osenberg, M., Hilger, A., Franzen, D., Turek, T., Manke, I., et al.
+(2019). On a Pluri-Gaussian Model for Three-phase Microstructures, with
+Applications to 3D Image Data of Gas-Diffusion Electrodes. Comput. Mater.
+Sci. 156, 325 –331. doi:10.1016/j.commatsci.2018.09.033
+Neumann, M., Stan ěk, J., Pecho, O. M., Holzer, L., Bene š, V., and Schmidt, V.
+(2016). Stochastic 3D Modeling of Complex Three-phase Microstructures in
+SOFC-Electrodes with Completely Connected Phases. Comput. Mater. Sci. 118,
+353–364. doi:10.1016/j.commatsci.2016.03.013
+Neumann., M., Stenzel, O., Willot, F., Holzer, L., and Schmidt, V. (2020).
+Quantifying the In ﬂuence of Microstructure on Effective Conductivity and
+Permeability: Virtual Materials Testing. Int. J. Sol. Structures 184, 211 –220.
+doi:10.1016/j.ijsolstr.2019.03.028
+Newman, J., and Thomas-Alyea, K. (2004). Electrochemical Systems. The ECS Series
+of Texts and Monographs . 3rd ed. Hoboken: J. Wiley & Sons.
+Nguyen, T.-T., Demortière, A., Fleutot, B., Delobel, B., Delacourt, C., and Cooper,
+S. J. (2020). The Electrode Tortuosity Factor: Why the Conventional Tortuosity
+Factor Is Not Well Suited for Quantifying Transport in Porous Li-Ion Battery
+Electrodes and What to Use Instead. Npj Comput. Mater. 6, 123. doi:10.1038/
+s41524-020-00386-4
+Ohser, J., and Mücklich, F. (2000). Statistical Analysis of Microstructures in
+Materials Science . Chichester: J. Wiley & Sons.
+Frontiers in Materials | www.frontiersin.org December 2021 | Volume 8 | Article 78650219
+Priﬂing et al. Mircostructure-Property Relationships for Mass Transport
+
+===== PAGE 20 =====
+Ohser, J., and Schladitz, K. (2009). 3D Images of Materials Structures: Processing
+and Analysis . Weinheim: Wiley VCH.
+Priﬂing, B., Ademmer, M., Single, F., Benevolenski, O., Hilger, A., Osenberg, M.,
+et al. (2021). Stochastic 3D Microstructure Modeling of Anodes in Lithium-Ion
+Batteries with a Particular Focus on Local Heterogeneity. Comput. Mater. Sci.
+192, 110354. doi:10.1016/j.commatsci.2021.110354
+Priﬂing, B., Neumann, M., Hlushkou, D., Kübel, C., Tallarek, U., and Schmidt, V.
+(2021). “Generating Digital Twins of Mesoporous Silica by Graph-Based
+Stochastic Microstructure Modeling. Comput. Mater. Sci. 187, 109934.
+doi:10.1016/j.commatsci.2020.109934
+Priﬂing, B., Röding, M., Townsend, P., Neumann, M., and Schmidt, V. (2021). Data
+from: Large-scale Statistical Learning for Mass Transport Prediction in Porous
+Materials Using 90,000 Arti ﬁcially Generated Microstructures [Data set]
+Zenodo. doi:10.5281/zenodo.4047774
+Priﬂing, B., Westhoff, D., Schmidt, D., Markötter, H., Manke, I., Knoblauch, V.,
+et al. (2019). “Parametric Microstructure Modeling of Compressed Cathode
+Materials for Li-Ion Batteries. Comput. Mater. Sci. 169, 109083. doi:10.1016/
+j.commatsci.2019.109083
+Prill, T., Jeulin, D., Willot, F., Balach, J., and Soldera, F. (2017). Prediction of
+Effective Properties of Porous Carbon Electrodes from a Parametric 3D
+Random Morphological Model. Transp Porous Med. 120, 141 –165.
+doi:10.1007/s11242-017-0913-1
+Qian, N. (1999). On the Momentum Term in Gradient Descent Learning
+Algorithms. Neural Networks 12, 145 –151. doi:10.1016/s0893-6080(98)
+00116-6
+Röding, M., Ma, Z., and Torquato, S. (2020). Predicting Permeability via Statistical
+Learning on Higher-Order Microstructural Information. Sci. Rep. 10, 15239.
+doi:10.1038/s41598-020-72085-5
+Röding, M., Gaska, K., Kádár, R., and Lorén, N. (2018). Computational Screening
+of Diffusive Transport in Nanoplatelet-Filled Composites: Use of Graphene to
+Enhance Polymer Barrier Properties. ACS Appl. Nano Mater. 1, 160 –167.
+doi:10.1021/acsanm.7b00067
+Röding, M., Schuster, E., Logg, K., Lundman, M., Bergström, P., Hanson, C., et al.
+(2016). Computational High-Throughput Screening of Fluid Permeability in
+Heterogeneous Fiber Materials. Soft Matter 12, 6293 –6299. doi:10.1039/
+c6sm01213b
+Röding, M. (2017). Shape-dependent Effective Diffusivity in Packings of Hard
+Cubes and Cuboids Compared with Spheres and Ellipsoids. Soft Matter 13,
+8864–8870. doi:10.1039/c7sm01910f
+Röding, M. (2018). “Effective Diffusivity in Lattices of Impermeable Superballs.
+Phys. Rev. E. 98, 052908. doi:10.1103/physreve.98.052908
+R u s s ,J .C .( 2 0 0 7 ) .The Image Processing Handbook .5 t he d .B o c aR a t o n :C R C
+Press.
+Sahimi, M. (2011). Flow and Transport in Porous Media and Fractured Rock: From
+Classical Methods to Modern Approaches . 2nd ed. Weinheim: Wiley VCH.
+Saunders, R., Butler, C., Michopoulos, J., Lagoudas, D., Elwany, A., and Bagchi, A.
+(2021). “Mechanical Behavior Predictions of Additively Manufactured
+Microstructures Using Functional Gaussian Process Surrogates. Npj Comput.
+Mater. 7, 81. doi:10.1038/s41524-021-00548-y
+Schladitz, K., Ohser, J., and Nagel, W. (2007).
+“Measuring Intrinsic Volumes in
+Digital 3D Images, ” in 13th International Conference Discrete Geometry for
+Computer Imagery, Szeged, Hungary, October 25 –27, 2006. Editors A. Kuba,
+L. Nyúl, and K. Palágyi (Berlin: Springer), 247 –258.
+Schmidhuber, J. (2015). Deep Learning in Neural Networks: An Overview. Neural
+Networks 61, 85 –117. doi:10.1016/j.neunet.2014.09.003
+Sen, A., and Srivastava, M. (2012). Regression Analysis: Theory, Methods, and
+Applications. Springer Texts in Statistics. New York: Springer.
+Serra, J. (1982). Image Analysis and Mathematical Morphology. London: Academic
+Press.
+Soille, P. (2003). Morphological Image Analysis: Principles and Applications. 2nd ed.
+New York: Springer.
+Srisutthiyakorn, N. (2016), “Deep-learning Methods for Predicting Permeability
+from 2D/3D Binary-Segmented Images, ” in 2016 SEG International Exposition
+and Annual Meeting, 3042–3046. SEG Technical Program Expanded Abstracts.
+doi:10.1190/segam2016-13972613.1
+Srivastava, N., Hinton, G., Krizhevsky, A., Sutskever, I., and Salakhutdinov, R.
+(2014). Dropout: A Simple Way to Prevent Neural Networks from Over ﬁtting.
+J. Mach. Learn. Res. 15, 1929 –1958.
+Stenzel, O., Hassfeld, H., Thiedmann, R., Koster, L. J. A., Oosterhout, S. D., van
+Bavel, S. S., et al. (2011). Spatial Modeling of the 3D Morphology of Hybrid
+Polymer-ZnO Solar Cells, Based on Electron Tomography Data. Ann. Appl.
+Stat. 5, 1920 –1947. doi:10.1214/11-aoas468
+S t e n z e l ,O . ,P e c h o ,O . ,H o l z e r ,L . ,N e u m a n n ,M . ,a n dS c h m i d t ,V .( 2 0 1 7 ) .B i g
+Data for Microstructure-property Relationships: A Case Study of
+Predicting Effective Conductivities. AIChE J. 63, 4224 –4232.
+doi:10.1002/aic.15757
+Stenzel, O., Pecho, O., Holzer, L., Neumann, M., and Schmidt, V. (2016). Predicting
+Effective Conductivities Based on Geometric Microstructure Characteristics.
+AIChE J. 62, 1834 –1843. doi:10.1002/aic.15160
+Sudakov, O., Burnaev, E., and Koroteev, D. (2019). Driving Digital Rock towards
+Machine Learning: Predicting Permeability with Gradient Boosting and Deep
+Neural Networks. Comput. Geosciences 127, 91 –98. doi:10.1016/
+j.cageo.2019.02.002
+Thorat, I. V., Stephenson, D. E., Zacharias, N. A., Zaghib, K., Harb, J. N., and
+Wheeler, D. R. (2009). Quantifying Tortuosity in Porous Li-Ion Battery
+Materials. J. Power Sourc. 188, 592 –600. doi:10.1016/j.jpowsour.2008.12.032
+Tjaden, B., Brett, D. J. L., and Shearing, P. R. (2018). Tortuosity in Electrochemical
+Devices: A Review of Calculation Approaches. Int. Mater. Rev. 63, 47 –67.
+doi:10.1080/09506608.2016.1249995
+Torquato, S. (2002). Random Heterogeneous Materials - Microstructure and
+Macroscopic Properties . New-York: Springer.
+Torquato, S. (1991). Random Heterogeneous Media: Microstructure and Improved
+Bounds on Effective Properties. Appl. Mech. Rev. 44, 37 –76. doi:10.1115/
+1.3119494
+Toussaint, G. T. (1980). The Relative Neighbourhood Graph of a Finite Planar Set.
+Pattern Recognition 12, 261 –
+268. doi:10.1016/0031-3203(80)90066-7
+Townsend, P., Larsson, E., Karlson, T., Hall, S. A., Lundman, M., Bergström, P.,
+et al. (2021). Stochastic Modelling of 3D Fiber Structures Imaged with X-ray
+Microtomography. Comput. Mater. Sci. 194, 110433. doi:10.1016/
+j.commatsci.2021.110433
+U m e h a r a ,M . ,S t e i n ,H . ,G u e v a r r a ,D . ,N e w h o u s e ,P . ,B o y d ,D . ,a n dG r e g o i r e ,J .( 2 0 1 9 ) .
+Analyzing Machine Learning Models to Accelerate Generation of Fundamental
+Materials Insights.Npj Comput. Mater.5, 34. doi:10.1038/s41524-019-0172-5
+van der Linden, J., Narsilio, G., and Tordesillas, A. (2016). Machine Learning
+Framework for Analysis of Transport through Complex Networks in Porous,
+Granular media: A Focus on Permeability. Phys. Rev. E. 94, 022904.
+doi:10.1103/PhysRevE.94.022904
+Waltz, R. A., Morales, J. L., Nocedal, J., and Orban, D. (2006). An interior
+Algorithm for Nonlinear Optimization that Combines Line Search and
+Trust Region Steps. Math. Program 107, 391 –408. doi:10.1007/s10107-004-
+0560-5
+Wang, H., Pietrasanta, A., Jeulin, D., Willot, F., Faessel, M., Sorbier, L., et al. (2015).
+Modelling Mesoporous Alumina Microstructure with 3D Random Models of
+Platelets. J. Microsc. 260, 287 –301. doi:10.1111/jmi.12295
+Wang, H., Yin, Y., Hui, X., Bai, J., and Qu, Z. (2020). Prediction of Effective
+Diffusivity of Porous media Using Deep Learning Method Based on Sample
+Structure Information Self-Ampli ﬁcation. Energy and AI. 2, 100035.
+doi:10.1016/j.egyai.2020.100035
+W e s t h o f f ,D . ,M a n k e ,I . ,a n dS c h m i d t ,V .( 2 0 1 8 ) .G e n e r a t i o no fV i r t u a l
+Lithium-Ion Battery Electrode Microstructures Based on Spatial
+Stochastic Modeling. C o m p u t .M a t e r .S c i .151, 53 –64. doi:10.1016/
+j.commatsci.2018.04.060
+Westhoff, D., Skibinski, J., Šedivý, O., Wysocki, B., Wejrzanowski, T., and Schmidt,
+V. (2018). Investigation of the Relationship between Morphology and
+Permeability for Open-Cell Foams Using Virtual Materials Testing. Mater.
+Des. 147, 1 –10. doi:10.1016/j.matdes.2018.03.022
+Westhoff, D., van Franeker, J. J., Brereton, T., Kroese, D. P., Janssen, R. A. J., and
+Schmidt, V. (2015). Stochastic Modeling and Predictive Simulations for the
+Microstructure of Organic Semiconductor Films Processed with Different Spin
+Coating Velocities. Model. Simul. Mat. Sci. Eng. 23, 045003. doi:10.1088/0965-
+0393/23/4/045003
+Willot, F., and Forest, S. (2018). Physics and Mechanics of Random Media: From
+Morphology to Material Properties (Paris: Presses des MINES).
+Wu, H., Fang, W. Z., Kang, Q., Tao, W. Q., and Qiao, R. (2019). Predicting Effective
+Diffusivity of Porous Media from Images by Deep Learning. Sci. Rep. 9, 20387.
+doi:10.1038/s41598-019-56309-x
+Frontiers in Materials | www.frontiersin.org December 2021 | Volume 8 | Article 78650220
+Priﬂing et al. Mircostructure-Property Relationships for Mass Transport
+
+===== PAGE 21 =====
+Wu, J., Yin, X., and Xiao, H. (2018). Seeing Permeability from Images: Fast
+Prediction with Convolutional Neural Networks. Sci. Bull. 63, 1215 –1222.
+doi:10.1016/j.scib.2018.08.006
+Xu, N., Huang, X., and Huang, S. (2017). A Measure of General Functional
+Dependence between Two Continuous Variables. Commun. Stat. - Theor.
+Methods 46, 4327 –4352. doi:10.1080/03610926.2015.1081951
+Zou, Q., and He, X. (1997). On Pressure and Velocity Boundary Conditions for the
+Lattice Boltzmann BGK Model. Phys. Fluids 9, 1591 –1598. doi:10.1063/
+1.869307
+Conﬂict of Interest: The authors declare that the research was conducted in the
+absence of any commercial or ﬁnancial relationships that could be construed as a
+potential con ﬂict of interest.
+Publisher’s Note: All claims expressed in this article are solely those of the authors
+and do not necessarily represent those of their af ﬁliated organizations, or those of
+the publisher, the editors and the reviewers. Any product that may be evaluated in
+this article, or claim that may be made by its manufacturer, is not guaranteed or
+endorsed by the publisher.
+Copyright © 2021 Pri ﬂing, Röding, Townsend, Neumann and Schmidt. This is an
+open-access article distributed under the terms of the Creative Commons Attribution
+License (CC BY). The use, distribution or reproduction in other forums is permitted,
+provided the original author(s) and the copyright owner(s) are credited and that the
+original publication in this journal is cited, in accordance with accepted academic
+practice. No use, distribution or reproduction is permitted which does not comply
+with these terms.
+Frontiers in Materials | www.frontiersin.org December 2021 | Volume 8 | Article 78650221
+Priﬂing et al. Mircostructure-Property Relationships for Mass Transport

@@ -1,0 +1,17 @@
+﻿{
+    "python.analysis.extraPaths":  [
+                                       "C:\\Users\\ShijieZhu\\anaconda3\\Lib\\site-packages",
+                                       "D:\\Python_Code\\electrode_reconstructor",
+                                       "D:\\Python_Code\\CNNtrain"
+                                   ],
+    "python.defaultInterpreterPath":  "C:\\Users\\ShijieZhu\\anaconda3\\python.exe",
+    "python.condaPath":  "C:\\Users\\ShijieZhu\\anaconda3\\Scripts\\conda.exe",
+    "python.terminal.activateEnvironment":  true,
+    "python.analysis.diagnosticMode":  "workspace",
+    "python.analysis.autoImportCompletions":  true,
+    "python.analysis.typeCheckingMode":  "basic",
+    "python.analysis.diagnosticSeverityOverrides":  {
+                                                        "reportMissingImports":  "none",
+                                                        "reportMissingModuleSource":  "none"
+                                                    }
+}

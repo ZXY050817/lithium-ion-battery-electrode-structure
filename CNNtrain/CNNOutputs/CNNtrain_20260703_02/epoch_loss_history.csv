@@ -1,0 +1,2 @@
+epoch,average_training_total_loss,average_training_reconstruction_loss,average_training_factor_loss,average_validation_total_loss,average_validation_reconstruction_loss,average_validation_factor_loss
+1,0.8979048728942871,0.9537945985794067,0.674345999956131,0.8452748656272888,0.9388205707073212,0.47109197080135345
