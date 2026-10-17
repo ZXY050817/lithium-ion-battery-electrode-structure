@@ -125,6 +125,8 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         type=int,
         help="Optional limit on the number of test structures used for t-SNE/PCA analysis.",
     )
+    structure_factors.add_constrictivity_arguments(parser)
+    structure_factors.add_distribution_arguments(parser)
     return parser.parse_args(argv)
 
 
@@ -344,6 +346,10 @@ def extract_split_structure_factors(
     write_json: bool,
     write_xlsx: bool,
     skip_existing_outputs: bool = True,
+    constrictivity_axis: int = 0,
+    constrictivity_connectivity: int = 26,
+    constrictivity_inlet: str = "low",
+    chord_axis: int = 0,
 ) -> Dict[str, int]:
     txt_files = structure_factors.collect_phase_slice_txt_files(split_root)
     if not txt_files:
@@ -395,12 +401,20 @@ def extract_split_structure_factors(
                 electrolyte_connectivity,
                 equivalent_particle_diameter,
                 tortuosity,
+                constrictivity,
+                chord_length,
+                spherical_contact,
+                two_point,
             ) = structure_factors.compute_all_structure_factors(
                 input_txt=input_txt,
                 voxel_size_um=voxel_size_um,
                 solid_value=solid_value,
                 liquid_values=liquid_values,
                 unknown_cluster_threshold=unknown_cluster_threshold,
+                constrictivity_axis=constrictivity_axis,
+                constrictivity_connectivity=constrictivity_connectivity,
+                constrictivity_inlet=constrictivity_inlet,
+                chord_axis=chord_axis,
             )
             computed_count += 1
             if write_json:
@@ -413,6 +427,10 @@ def extract_split_structure_factors(
                         electronic_connectivity=electronic_connectivity,
                         electrolyte_connectivity=electrolyte_connectivity,
                         equivalent_particle_diameter=equivalent_particle_diameter,
+                        constrictivity=constrictivity,
+                        chord_length=chord_length,
+                        spherical_contact=spherical_contact,
+                        two_point=two_point,
                     )
                     structure_factors.write_multitask_structure_factor_json(
                         output_json, payload
@@ -431,6 +449,10 @@ def extract_split_structure_factors(
                         electronic_connectivity=electronic_connectivity,
                         electrolyte_connectivity=electrolyte_connectivity,
                         equivalent_particle_diameter=equivalent_particle_diameter,
+                        constrictivity=constrictivity,
+                        chord_length=chord_length,
+                        spherical_contact=spherical_contact,
+                        two_point=two_point,
                         tortuosity=tortuosity,
                         solid_value=solid_value,
                         liquid_values=liquid_values,
@@ -707,6 +729,10 @@ def run_pipeline(args: argparse.Namespace) -> Dict[str, Any]:
             write_json=True,
             write_xlsx=False,
             skip_existing_outputs=skip_existing_factors,
+            constrictivity_axis="xyz".index(args.constrictivity_axis),
+            constrictivity_connectivity=args.constrictivity_connectivity,
+            constrictivity_inlet=args.constrictivity_inlet,
+            chord_axis="xyz".index(args.chord_axis),
         )
         verify_factor_stats = extract_split_structure_factors(
             split_root=verify_root,
@@ -718,6 +744,10 @@ def run_pipeline(args: argparse.Namespace) -> Dict[str, Any]:
             write_json=True,
             write_xlsx=False,
             skip_existing_outputs=skip_existing_factors,
+            constrictivity_axis="xyz".index(args.constrictivity_axis),
+            constrictivity_connectivity=args.constrictivity_connectivity,
+            constrictivity_inlet=args.constrictivity_inlet,
+            chord_axis="xyz".index(args.chord_axis),
         )
         test_factor_stats = extract_split_structure_factors(
             split_root=test_root,
@@ -729,6 +759,10 @@ def run_pipeline(args: argparse.Namespace) -> Dict[str, Any]:
             write_json=True,
             write_xlsx=True,
             skip_existing_outputs=skip_existing_factors,
+            constrictivity_axis="xyz".index(args.constrictivity_axis),
+            constrictivity_connectivity=args.constrictivity_connectivity,
+            constrictivity_inlet=args.constrictivity_inlet,
+            chord_axis="xyz".index(args.chord_axis),
         )
         factor_elapsed_seconds = float(time.perf_counter() - factor_start_time)
         summary["train_structure_factor_stats"] = train_factor_stats

@@ -1,0 +1,34 @@
+{
+  "shape": [
+    64,
+    64,
+    64
+  ],
+  "seed": 20261013,
+  "pore_probability": 0.7,
+  "repeats": 3,
+  "method": "edt_critical_radii_closed_dilation_v2",
+  "radius_count": 6,
+  "curve_equality": "exact",
+  "beta": 0.4999999999999999,
+  "timings": {
+    "full_periodic_halo": {
+      "seconds": [
+        6.0134596999996575,
+        5.847089700000652,
+        5.918363899999349
+      ],
+      "median_seconds": 5.918363899999349
+    },
+    "radius_limited_halo": {
+      "seconds": [
+        1.841953399999511,
+        1.7943769999992583,
+        1.782885300000089
+      ],
+      "median_seconds": 1.7943769999992583
+    }
+  },
+  "speedup": 3.2982834153590885,
+  "scope": "Same v2 algorithm; only periodic EDT halo strategy differs. Not a v1/v2 total-cost comparison."
+}

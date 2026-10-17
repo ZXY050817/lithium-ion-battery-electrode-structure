@@ -1,0 +1,21 @@
+{
+  "input": "Structure_Data\\test\\20260703_02\\electrode_test_0001_phase_slices.txt",
+  "shape": [
+    64,
+    64,
+    64
+  ],
+  "voxel_size_um": 0.5,
+  "elapsed_seconds": 4.266655200000969,
+  "constrictivity_beta": 0.8333333333333336,
+  "chord_mean_um": 2.9117382812500003,
+  "chord_std_um": 3.13972358112594,
+  "chord_status": "window_censored",
+  "contact_mean_um": 0.6484924125869878,
+  "contact_std_um": 0.24616341100669256,
+  "contact_status": "ok",
+  "correlation_C0": 0.5686988830566406,
+  "porosity": 0.5686988830566406,
+  "radial_samples": 57,
+  "source_results_overwritten": false
+}

@@ -4,5 +4,52 @@
   "specific_surface_area_inv_um": 2.7436326631540906,
   "electronic_connectivity": 0.997793544214711,
   "electrolyte_connectivity": 0.9993493469992822,
-  "equivalent_particle_diameter_um": 10.449459374949338
+  "equivalent_particle_diameter_um": 10.449459374949338,
+  "constrictivity_beta": 1.0,
+  "r_min_um": 1.0,
+  "r_max_um": 1.0,
+  "constrictivity_details": {
+    "r_min_um": 1.0,
+    "r_max_um": 1.0,
+    "constrictivity_beta": 1.0,
+    "status": "ok",
+    "radii_um": [
+      0.0,
+      0.5,
+      1.0,
+      1.5,
+      2.0,
+      2.5,
+      3.0,
+      3.5
+    ],
+    "cpsd": [
+      0.5686988830566406,
+      0.5686988830566406,
+      0.38144683837890625,
+      0.18025588989257812,
+      0.054737091064453125,
+      0.009613037109375,
+      0.0,
+      0.0
+    ],
+    "mip": [
+      0.5663299560546875,
+      0.5663299560546875,
+      0.32977294921875,
+      0.02429962158203125,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "axis": "x",
+    "pore_label": 0,
+    "voxel_size_um": 0.5,
+    "connectivity": 6,
+    "radius_step_um": 0.5,
+    "geometry_periodic_axes": "xyz",
+    "intrusion_periodic_axes": "yz",
+    "method": "sampled_open_digital_balls_50_percent_total_pore_volume"
+  }
 }
